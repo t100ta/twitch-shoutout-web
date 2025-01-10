@@ -3,43 +3,41 @@ import { useQueryUsers } from "../../hooks/useQueryUsers";
 
 type Props = {
   accessToken: string;
-  channelName: string;
-  setChannelName: React.Dispatch<React.SetStateAction<string>>;
+  channelLoginName: string;
+  channelDisplayName: string;
+  setChannelLoginName: React.Dispatch<React.SetStateAction<string>>;
+  setChannelDisplayName: React.Dispatch<React.SetStateAction<string>>;
   setId: React.Dispatch<React.SetStateAction<string>>;
 };
 
 export const TargetChannelFinder = (props: Props) => {
   const { data: usersResponse, refetch } = useQueryUsers(
     props.accessToken,
-    props.channelName
+    props.channelLoginName
   );
   const text = useRef("");
   const [imgUrl, setImgUrl] = useState("");
-  // const [loginName, setLoginName] = useState("");
-  const [displayName, setDisplayName] = useState("");
 
   const checkExistence = async () => {
-    if (!props.channelName) {
+    if (!props.channelLoginName) {
       return;
     }
     await refetch();
   };
   useEffect(() => {
-    if (!props.channelName) {
+    if (!props.channelLoginName) {
       return;
     }
     if (!usersResponse || !Object.keys(usersResponse).length) {
       setImgUrl("");
-      // setLoginName("");
-      setDisplayName("");
+      props.setChannelDisplayName("");
       text.current = "Twitchで検索したけど見つからなかった...";
       return;
     }
     const targetUser = usersResponse[0];
     setImgUrl(targetUser.profile_image_url);
-    props.setChannelName(targetUser.login);
-    // setLoginName(targetUser.login);
-    setDisplayName(targetUser.display_name);
+    props.setChannelLoginName(targetUser.login);
+    props.setChannelDisplayName(targetUser.display_name);
     props.setId(targetUser.id);
     text.current = "";
   }, [usersResponse]);
@@ -49,12 +47,16 @@ export const TargetChannelFinder = (props: Props) => {
 
       <input
         placeholder="ID (https://www.twitch.tv/ 以降の部分)"
-        value={props.channelName}
-        onChange={(event) => props.setChannelName(event.target.value)}
+        value={props.channelLoginName}
+        onChange={(event) => props.setChannelLoginName(event.target.value)}
         onBlur={() => checkExistence()}
       ></input>
-      <img src={imgUrl} alt={props.channelName} title={displayName} />
-      <p>{displayName}</p>
+      <img
+        src={imgUrl}
+        alt={props.channelLoginName}
+        title={props.channelDisplayName}
+      />
+      <p>{props.channelDisplayName}</p>
       <span>{text.current}</span>
     </>
   );

@@ -18,8 +18,11 @@ export const Edit = () => {
   const createSettingsMutation = useMutateSettings();
 
   const userSettings = useQuerySettings(ID).data;
-  const [targetChannelDisplayName, setTargetChannelName] = useState(
+  const [targetChannelDisplayName, setTargetChannelDisplayName] = useState(
     userSettings?.targetChannelDisplayName ?? ""
+  );
+  const [targetChannelLoginName, setTargetChannelLoginName] = useState(
+    userSettings?.targetChannelLoginName ?? ""
   );
   const [targetChannelId, setTargetChannelId] = useState(
     userSettings?.targetChannelId ?? ""
@@ -45,6 +48,7 @@ export const Edit = () => {
       twitchId: ID,
       data: {
         targetChannelDisplayName: targetChannelDisplayName,
+        targetChannelLoginName: targetChannelLoginName,
         targetChannelId: targetChannelId,
         shoutoutMessage: shoutoutMessage,
         isShoutoutCommandExecute: isCommandExecuteChecked,
@@ -62,8 +66,10 @@ export const Edit = () => {
         <h1>編集</h1>
         <TargetChannelFinder
           accessToken={ACCESS_TOKEN}
-          channelName={targetChannelDisplayName}
-          setChannelName={setTargetChannelName}
+          channelLoginName={targetChannelLoginName}
+          channelDisplayName={targetChannelDisplayName}
+          setChannelLoginName={setTargetChannelLoginName}
+          setChannelDisplayName={setTargetChannelDisplayName}
           setId={setTargetChannelId}
         />
         <MessageCreator
@@ -86,7 +92,7 @@ export const Edit = () => {
 
         <button
           type="submit"
-          disabled={!targetChannelDisplayName || !shoutoutMessage}
+          disabled={!targetChannelLoginName || !shoutoutMessage}
         >
           完了
         </button>

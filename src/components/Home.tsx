@@ -20,6 +20,7 @@ export const Home = () => {
   const queryClient = useQueryClient();
   const clientRef = useRef<Client | null>(null);
   const [targetDisplayName, setTargetDisplayName] = useState("");
+  const [targetLoginName, setTargetLoginName] = useState("");
   const [targetId, setTargetId] = useState("");
   const [shoutoutMessage, setShoutoutMessage] = useState("");
   const [isShoutoutCommandExecute, setIsShoutoutCommandExecute] =
@@ -66,11 +67,12 @@ export const Home = () => {
 
   useEffect(() => {
     if (
-      !targetDisplayName ||
+      !targetLoginName ||
       (clientRef.current && clientRef.current.readyState() === "OPEN")
     ) {
       return;
     }
+    // TODO エラー時に再ログインを促す処理が欲しい
     validate.mutate(ACCESS_TOKEN);
     clientRef.current = new Client({
       connection: {
@@ -81,7 +83,7 @@ export const Home = () => {
         username: botUser?.displayName,
         password: `${ACCESS_TOKEN}`,
       },
-      channels: [targetDisplayName],
+      channels: [targetLoginName],
       options: { skipUpdatingEmotesets: true },
     });
     const client = clientRef.current;
@@ -99,7 +101,7 @@ export const Home = () => {
   }, [
     botUser,
     ACCESS_TOKEN,
-    targetDisplayName,
+    targetLoginName,
     handleConnected,
     handleDisconnected,
     handleRaided,
@@ -163,11 +165,13 @@ export const Home = () => {
     }
     if (userSettings) {
       setTargetDisplayName(userSettings.targetChannelDisplayName);
+      setTargetLoginName(userSettings.targetChannelLoginName);
       setTargetId(userSettings.targetChannelId);
       setShoutoutMessage(userSettings.shoutoutMessage);
       setIsShoutoutCommandExecute(userSettings.isShoutoutCommandExecute);
     } else {
       setTargetDisplayName(botUser?.displayName as string);
+      setTargetLoginName(botUser?.loginName as string);
       setTargetId(botUser?.id as string);
       setShoutoutMessage(
         "◆◆◆ Thanks for the raid! $displayname さん( https://www.twitch.tv/$loginname ). | $category -$title"
@@ -197,8 +201,9 @@ export const Home = () => {
       <img src={botUser?.icon} />
       <h2>ようこそ{botUser?.displayName}さん</h2>
       <div>
-        投稿先チャンネルのユーザーID
+        投稿先チャンネル
         <h2>{targetDisplayName}</h2>
+        <h3>{targetLoginName}</h3>
       </div>
       <div>
         Shoutoutメッセージ

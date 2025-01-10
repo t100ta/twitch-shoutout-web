@@ -39,6 +39,7 @@ export type ShoutoutProperties = {
 
 export type UserSettings = {
   targetChannelDisplayName: string;
+  targetChannelLoginName: string;
   targetChannelId: string;
   shoutoutMessage: string;
   isShoutoutCommandExecute: boolean;
