@@ -128,3 +128,6 @@ $RECYCLE.BIN/
 # .pnp.*
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,react,yarn,windows,macos,linux
+
+dist
+.env.*

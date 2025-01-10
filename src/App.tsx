@@ -1,12 +1,21 @@
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import "./App.css";
-import logo from "./assets/logo.png";
+import { Edit } from "./components/edit/Edit";
+import { Home } from "./components/Home";
+import { Login } from "./components/Login";
+import { AuthGuard } from "./components/shared/AuthGuard";
 
 function App() {
   return (
-    <>
-      <h1>APP</h1>
-      <img src={logo} alt="logo" />
-    </>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route element={<AuthGuard />}>
+          <Route path="/home" element={<Home />} />
+          <Route path="/edit" element={<Edit />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
