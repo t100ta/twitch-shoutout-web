@@ -125,7 +125,7 @@ export const Home = () => {
     });
 
     clientRef.current?.say(
-      targetDisplayName as string,
+      targetLoginName as string,
       replaceText(shoutoutMessage as string, {
         displayName: channel.broadcaster_name,
         name: channel.broadcaster,
