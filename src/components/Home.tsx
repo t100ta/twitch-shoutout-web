@@ -157,6 +157,7 @@ export const Home = () => {
     targetId,
     shoutoutMessage,
     isShoutoutCommandExecute,
+    ACCESS_TOKEN,
   ]);
 
   useEffect(() => {
