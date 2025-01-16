@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { User } from "../types";
-import { TWITCH_API_URI, TWITCH_CLIENT_ID } from "../constants/path";
+import { TWITCH_API_URI, TWITCH_CLIENT_ID } from "../constants";
 
 export const useQueryUsers = (token: string, loginName: string) => {
   const getUsers = async () => {

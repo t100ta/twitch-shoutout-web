@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Channel } from "../types";
 import { useQuery } from "@tanstack/react-query";
-import { TWITCH_API_URI, TWITCH_CLIENT_ID } from "../constants/path";
+import { TWITCH_API_URI, TWITCH_CLIENT_ID } from "../constants";
 
 export const useQueryChannels = (token: string, broadcasterId: string) => {
   const getChannels = async () => {

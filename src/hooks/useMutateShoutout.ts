@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
-import { TWITCH_API_URI, TWITCH_CLIENT_ID } from "../constants/path";
+import { TWITCH_API_URI, TWITCH_CLIENT_ID } from "../constants";
 
 export const useMutateShoutout = () => {
   const executeShoutout = useMutation({

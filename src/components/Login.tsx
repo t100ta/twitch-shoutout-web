@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { AUTH_API_URI } from "../constants/path";
+import { AUTH_API_URI } from "../constants";
 import useStore from "../store";
 import { Contact } from "./shared/Contact";
 import { signInWithTwitch } from "../utils";
