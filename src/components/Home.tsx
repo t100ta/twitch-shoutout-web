@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Client } from "tmi.js";
 import { useQueryClient } from "@tanstack/react-query";
 import useStore from "../store";
-import { replaceText } from "../utils";
+import { replaceText, wait } from "../utils";
 import { Channel, User } from "../types";
 import { Header } from "./shared/Header";
 import { useQueryUsers } from "../hooks/useQueryUsers";
@@ -137,7 +137,8 @@ export const Home = () => {
     if (isShoutoutCommandExecute) {
       const executeShoutout = async () => {
         try {
-          const result = shoutoutCommandExecute.mutateAsync({
+          await wait(3 * 1000);
+          const result = await shoutoutCommandExecute.mutateAsync({
             token: ACCESS_TOKEN,
             fromBroadcasterId: targetId,
             toBroadcasterId: channel.broadcaster_id,
@@ -148,7 +149,8 @@ export const Home = () => {
           console.error("Failed to execute shoutout:", error);
         }
       };
-      setTimeout(executeShoutout, 3 * 1000);
+
+      executeShoutout();
     }
   }, [
     shoutoutData,
