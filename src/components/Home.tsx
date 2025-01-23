@@ -148,7 +148,7 @@ export const Home = () => {
           console.error("Failed to execute shoutout:", error);
         }
       };
-      setTimeout(executeShoutout, 35 * 1000);
+      setTimeout(executeShoutout, 3 * 1000);
     }
   }, [
     shoutoutData,
