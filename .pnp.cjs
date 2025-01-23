@@ -49,6 +49,7 @@ const RAW_RUNTIME_STATE =
           ["prettier", "npm:3.4.1"],\
           ["react", "npm:18.3.1"],\
           ["react-dom", "virtual:8754f6af6392b1e13f1f1b34253ab56d31fde20e28fee735a3c458cbd2a4097877850df94be423bd0193b57ca7f4320afb24fd51cb7078187e8ce1b14936f97d#npm:18.3.1"],\
+          ["react-icons", "virtual:8754f6af6392b1e13f1f1b34253ab56d31fde20e28fee735a3c458cbd2a4097877850df94be423bd0193b57ca7f4320afb24fd51cb7078187e8ce1b14936f97d#npm:5.4.0"],\
           ["react-router-dom", "virtual:8754f6af6392b1e13f1f1b34253ab56d31fde20e28fee735a3c458cbd2a4097877850df94be423bd0193b57ca7f4320afb24fd51cb7078187e8ce1b14936f97d#npm:7.1.1"],\
           ["tmi.js", "file:src/libs/tmi.js#src/libs/tmi.js::hash=24449a&locator=twitch-shoutout-web%40workspace%3A."],\
           ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
@@ -6957,6 +6958,28 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["react-icons", [\
+      ["npm:5.4.0", {\
+        "packageLocation": "../../../.yarn/berry/cache/react-icons-npm-5.4.0-9588c76e84-10c0.zip/node_modules/react-icons/",\
+        "packageDependencies": [\
+          ["react-icons", "npm:5.4.0"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:8754f6af6392b1e13f1f1b34253ab56d31fde20e28fee735a3c458cbd2a4097877850df94be423bd0193b57ca7f4320afb24fd51cb7078187e8ce1b14936f97d#npm:5.4.0", {\
+        "packageLocation": "./.yarn/__virtual__/react-icons-virtual-b794c7ff7f/4/.yarn/berry/cache/react-icons-npm-5.4.0-9588c76e84-10c0.zip/node_modules/react-icons/",\
+        "packageDependencies": [\
+          ["react-icons", "virtual:8754f6af6392b1e13f1f1b34253ab56d31fde20e28fee735a3c458cbd2a4097877850df94be423bd0193b57ca7f4320afb24fd51cb7078187e8ce1b14936f97d#npm:5.4.0"],\
+          ["@types/react", "npm:18.3.18"],\
+          ["react", "npm:18.3.1"]\
+        ],\
+        "packagePeers": [\
+          "@types/react",\
+          "react"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["react-is", [\
       ["npm:16.13.1", {\
         "packageLocation": "../../../.yarn/berry/cache/react-is-npm-16.13.1-a9b9382b4f-10c0.zip/node_modules/react-is/",\
@@ -7809,6 +7832,7 @@ const RAW_RUNTIME_STATE =
           ["prettier", "npm:3.4.1"],\
           ["react", "npm:18.3.1"],\
           ["react-dom", "virtual:8754f6af6392b1e13f1f1b34253ab56d31fde20e28fee735a3c458cbd2a4097877850df94be423bd0193b57ca7f4320afb24fd51cb7078187e8ce1b14936f97d#npm:18.3.1"],\
+          ["react-icons", "virtual:8754f6af6392b1e13f1f1b34253ab56d31fde20e28fee735a3c458cbd2a4097877850df94be423bd0193b57ca7f4320afb24fd51cb7078187e8ce1b14936f97d#npm:5.4.0"],\
           ["react-router-dom", "virtual:8754f6af6392b1e13f1f1b34253ab56d31fde20e28fee735a3c458cbd2a4097877850df94be423bd0193b57ca7f4320afb24fd51cb7078187e8ce1b14936f97d#npm:7.1.1"],\
           ["tmi.js", "file:src/libs/tmi.js#src/libs/tmi.js::hash=24449a&locator=twitch-shoutout-web%40workspace%3A."],\
           ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
