@@ -4,10 +4,12 @@ import { contact, note, contactLinks } from "./Contact.css";
 export const Contact = () => {
   return (
     <div className={contact}>
-      <p className={note}>
-        実験的かつ個人趣味のためサポートしきれない場合がございます。
-        予めご了承ください。質問等ございましたら、何らかの手段で開発兼管理者に気兼ねなく連絡ください。
-      </p>
+      <div className={note}>
+        <p>実験的かつ個人趣味のためサポートしきれない場合がございます。</p>
+        <p>
+          予めご了承ください。質問等ございましたら、何らかの手段で開発兼管理者に気兼ねなく連絡ください。
+        </p>
+      </div>
 
       <div className={contactLinks}>
         <img

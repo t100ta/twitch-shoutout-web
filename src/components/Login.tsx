@@ -5,6 +5,8 @@ import useStore from "../store";
 import { Contact } from "./shared/Contact";
 import { signInWithTwitch } from "../utils";
 import { auth } from "../firebase";
+import logo from "../assets/logo.png";
+import { logoStyle } from "./Logo.css";
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -44,8 +46,9 @@ export const Login = () => {
     (window.location.href = `${AUTH_API_URI}/authWithTwitch`);
   return (
     <>
+      <img src={logo} alt="logo" className={logoStyle} />
       <div>
-        <p>Twitchアカウントと連携すると使えます</p>
+        <p>Twitchアカウントと連携すると使えます。</p>
         <p>
           連携したアカウントのチャンネルに来るRaidを検知し、連携したアカウントでメッセージをチャットに投稿します。
         </p>
