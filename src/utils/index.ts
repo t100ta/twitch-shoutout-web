@@ -61,3 +61,7 @@ export const signInWithTwitch = async (
   }
   return true;
 };
+
+export const wait = (ms: number) => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+};
