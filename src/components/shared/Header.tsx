@@ -1,8 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import logo from "../../assets/logo.png";
 import useStore from "../../store";
 import { auth } from "../../firebase";
 import { signOut } from "firebase/auth";
+import logo from "../../assets/logo.png";
+import { header, headerLogo } from "./Header.css";
 
 export const Header = () => {
   const navigate = useNavigate();
@@ -15,9 +16,9 @@ export const Header = () => {
     await navigate("/");
   };
   return (
-    <>
-      <img src={logo} alt="logo" />
+    <header className={header}>
+      <img src={logo} alt="logo" className={headerLogo} />
       <button onClick={handleLogout}>ログアウト</button>
-    </>
+    </header>
   );
 };

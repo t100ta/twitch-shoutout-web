@@ -1,6 +1,7 @@
 import { RefObject, useRef, useState } from "react";
 import { VariablesAddButton } from "./VariablesAddButton";
 import { replaceText } from "../../utils";
+import { displayTextStyle } from "./MessageCreator.css";
 
 type Props = {
   accessToken: string;
@@ -29,7 +30,7 @@ export const MessageCreator = (props: Props) => {
     <>
       <h2>メッセージ</h2>
       <span>メッセージの見え方例(スタンプは反映されません)</span>
-      <p>{displayText}</p>
+      <p className={displayTextStyle}>{displayText}</p>
       <div className="button-box">
         <VariablesAddButton
           labelName="表示名"

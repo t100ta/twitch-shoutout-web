@@ -11,6 +11,7 @@ import { useQueryChannels } from "../hooks/useQueryChannels";
 import { useMutateShoutout } from "../hooks/useMutateShoutout";
 import { useQuerySettings } from "../hooks/useQuerySettings";
 import { useMutateValidation } from "../hooks/useMutateValidation";
+import { shoutoutMessageStyle, userSettingItemStyle } from "./Home.css";
 
 // TODO tokenリフレッシュ入れたほうがいいかも https://dev.twitch.tv/docs/authentication/refresh-tokens/
 export const Home = () => {
@@ -200,23 +201,33 @@ export const Home = () => {
   return (
     <>
       <Header />
-      <p>Twitch Auto Shoutout Bot</p>
+      <p>Twitch Shoutout Web</p>
       <img src={botUser?.icon} />
-      <h2>ようこそ{botUser?.displayName}さん</h2>
+      <p>
+        ようこそ{" "}
+        <span className={userSettingItemStyle}>{botUser?.displayName}</span>{" "}
+        さん
+      </p>
       <div>
-        投稿先チャンネル
-        <h2>{targetDisplayName}</h2>
-        <h3>{targetLoginName}</h3>
+        <p>投稿先チャンネル</p>
+        <p className={userSettingItemStyle}>{targetDisplayName}</p>
+        <p>{targetLoginName}</p>
       </div>
       <div>
         Shoutoutメッセージ
-        <h2>{replaceText(shoutoutMessage)}</h2>
+        <p className={`${userSettingItemStyle} ${shoutoutMessageStyle}`}>
+          {replaceText(shoutoutMessage)}
+        </p>
       </div>
       <div>
-        <h2>
+        <p>
           /shoutoutコマンドを自動実行
-          {isShoutoutCommandExecute ? <span>する</span> : <span>しない</span>}
-        </h2>
+          {isShoutoutCommandExecute ? (
+            <span className={userSettingItemStyle}>する</span>
+          ) : (
+            <span className={userSettingItemStyle}>しない</span>
+          )}
+        </p>
       </div>
       <button onClick={() => navigate("/edit")}>編集する</button>
     </>
