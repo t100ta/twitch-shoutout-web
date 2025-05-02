@@ -2176,10 +2176,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/tmi.js@file:src/types/tmi.js::locator=twitch-shoutout-web%40workspace%3A.":
+"@types/tmi.js@npm:^1.8.6":
   version: 1.8.6
-  resolution: "@types/tmi.js@file:src/types/tmi.js#src/types/tmi.js::hash=c17cad&locator=twitch-shoutout-web%40workspace%3A."
-  checksum: 10c0/4f37d4256d8b27beb460a32e1f4aabff3a9e6f061fd28c08c0913dc3509a4f6c27d79b5598b65470395933cf29044179273b663ca9244bd703cda3b6a234baef
+  resolution: "@types/tmi.js@npm:1.8.6"
+  checksum: 10c0/f1983835b60b68584cf5373161addc9b7d3f0d45616efb4b6650aff8e8b477751680b74be07318b6b3eaa87908140ea7e0dac4fb952bb875f5a1b0c8e565f9e1
   languageName: node
   linkType: hard
 
@@ -6332,13 +6332,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tmi.js@file:src/libs/tmi.js::locator=twitch-shoutout-web%40workspace%3A.":
+"tmi.js@npm:^1.8.5":
   version: 1.8.5
-  resolution: "tmi.js@file:src/libs/tmi.js#src/libs/tmi.js::hash=24449a&locator=twitch-shoutout-web%40workspace%3A."
+  resolution: "tmi.js@npm:1.8.5"
   dependencies:
     node-fetch: "npm:^2.6.1"
     ws: "npm:^8.2.0"
-  checksum: 10c0/147bc11b9058dfb8c24188a40b370a05db3dd1c5d73e33b1286c46793486727f5bd7681dac5ba19140c62560e31c950108dd06809d8af6a6119c75d6ea80034a
+  checksum: 10c0/a9fe7be5805c44ec1ba6dab0640c935b0ab6a8340b5a9cf9a9ce3731debd525dcbe0952f205f898c6fa94821492d58b26155a82b7854f18bfb1b3239b96f6d2f
   languageName: node
   linkType: hard
 
@@ -6405,7 +6405,7 @@ __metadata:
     "@types/node": "npm:^22.10.1"
     "@types/react": "npm:^18.3.12"
     "@types/react-dom": "npm:^18.3.1"
-    "@types/tmi.js": "file:src/types/tmi.js"
+    "@types/tmi.js": "npm:^1.8.6"
     "@vanilla-extract/css": "npm:^1.17.0"
     "@vanilla-extract/vite-plugin": "npm:^4.0.19"
     "@vitejs/plugin-react-swc": "npm:^3.5.0"
@@ -6423,7 +6423,7 @@ __metadata:
     react-dom: "npm:^18.3.1"
     react-icons: "npm:^5.4.0"
     react-router-dom: "npm:^7.0.2"
-    tmi.js: "file:src/libs/tmi.js"
+    tmi.js: "npm:^1.8.5"
     typescript: "npm:~5.6.2"
     typescript-cookie: "npm:^1.0.6"
     typescript-eslint: "npm:^8.15.0"
@@ -6917,8 +6917,8 @@ __metadata:
   linkType: hard
 
 "ws@npm:^8.2.0":
-  version: 8.18.0
-  resolution: "ws@npm:8.18.0"
+  version: 8.18.1
+  resolution: "ws@npm:8.18.1"
   peerDependencies:
     bufferutil: ^4.0.1
     utf-8-validate: ">=5.0.2"
@@ -6927,7 +6927,7 @@ __metadata:
       optional: true
     utf-8-validate:
       optional: true
-  checksum: 10c0/25eb33aff17edcb90721ed6b0eb250976328533ad3cd1a28a274bd263682e7296a6591ff1436d6cbc50fa67463158b062f9d1122013b361cec99a05f84680e06
+  checksum: 10c0/e498965d6938c63058c4310ffb6967f07d4fa06789d3364829028af380d299fe05762961742971c764973dce3d1f6a2633fe8b2d9410c9b52e534b4b882a99fa
   languageName: node
   linkType: hard
 
