@@ -41,7 +41,6 @@ export const Home = () => {
     data: userSettings,
     isLoading: isUserSettingsLoading,
     isError: isUserSettingsError,
-    isSuccess: isUserSettingsSuccess,
   } = useQuerySettings(botUser?.id as string);
 
   const {
