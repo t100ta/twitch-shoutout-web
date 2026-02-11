@@ -85,6 +85,7 @@ VITE_FIREBASE_APP_ID=
 - テストでは Firebase 初期化のモックが必要です。
 - `/shoutout` の自動実行は Twitch API の Shoutout エンドポイントを使用します（`moderator:manage:shoutouts` スコープが必要）。
 - Shoutout は「配信中かつ視聴者がいる」「自分自身には送れない」「レート制限あり」などの制約があります。
+- 認証失敗時は `auth_error` が付与されるため、ログイン画面でメッセージ表示します。
 
 ## Shoutout Message Placeholders
 

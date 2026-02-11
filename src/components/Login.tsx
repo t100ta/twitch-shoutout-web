@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AUTH_API_URI } from "../constants";
 import useStore from "../store";
@@ -10,6 +10,7 @@ import { logoStyle } from "./Logo.css";
 export const Login = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [authErrorMessage, setAuthErrorMessage] = useState("");
   const {
     appToken,
     setAppToken: setToken,
@@ -17,6 +18,34 @@ export const Login = () => {
     botUser,
     setBotUser,
   } = useStore();
+
+  const authErrorText = useMemo(() => {
+    const authError = searchParams.get("auth_error");
+    if (!authError) {
+      return "";
+    }
+    switch (authError) {
+      case "invalid_request":
+        return "認証リクエストが不正です。再度お試しください。";
+      case "invalid_state":
+        return "認証状態が不一致です。再度お試しください。";
+      case "auth_failed":
+        return "認証に失敗しました。再度お試しください。";
+      default:
+        return `認証エラーが発生しました（${authError}）。`;
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (authErrorText) {
+      setAuthErrorMessage(authErrorText);
+      window.history.replaceState(
+        {},
+        document.title,
+        window.location.pathname
+      );
+    }
+  }, [authErrorText]);
 
   useEffect(() => {
     const appTokenFromParams = searchParams.get("app_token");
@@ -54,6 +83,7 @@ export const Login = () => {
   return (
     <>
       <img src={logo} alt="logo" className={logoStyle} />
+      {authErrorMessage ? <p>{authErrorMessage}</p> : null}
       <div>
         <p>Twitchアカウントと連携すると使えます。</p>
         <p>
