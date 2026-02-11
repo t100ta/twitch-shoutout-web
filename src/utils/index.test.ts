@@ -113,4 +113,18 @@ describe("signInWithTwitch", () => {
       icon: "icon",
     });
   });
+
+  it("handles sign-in errors gracefully", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    mockSignInWithCustomToken.mockRejectedValue(new Error("boom"));
+
+    const setBotUser = vi.fn();
+    const result = await signInWithTwitch("token", null, setBotUser);
+
+    expect(result).toBe(true);
+    expect(setBotUser).not.toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalled();
+
+    consoleSpy.mockRestore();
+  });
 });
