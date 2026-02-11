@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Client } from "tmi.js";
+import { ChatUserstate, Client } from "tmi.js";
 import { useQueryClient } from "@tanstack/react-query";
 import useStore from "../store";
 import { replaceText, wait } from "../utils";
@@ -56,12 +56,27 @@ export const Home = () => {
   const handleDisconnected = useCallback((reason: string) => {
     console.log("Disconnected from Twitch chat:", reason);
   }, []);
-  const handleRaided = useCallback(
-    (channel: string, username: string, viewers: number, loginName: string) => {
+  // const handleRaided = useCallback(
+  //   (channel: string, username: string, viewers: number, loginName: string) => {
+  //     console.log(
+  //       `Detected "raided"\nchannel: ${channel}\nusername: ${username}\nviewer: ${viewers}\nloginName: ${loginName}`
+  //     );
+  //     setRaiderLoginName(loginName);
+  //   },
+  //   []
+  // );
+  const handleUserNotice = useCallback(
+    (channel: string, tags: ChatUserstate) => {
+      if (tags["msg-id"] !== "raid") {
+        return;
+      }
+
+      const login = tags["msg-param-login"]!;
+      const displayName = tags["msg-param-displayName"] || login;
       console.log(
-        `Detected "raided"\nchannel: ${channel}\nusername: ${username}\nviewer: ${viewers}\nloginName: ${loginName}`
+        `Detected "raided"\nchannel: ${channel}\nusername: ${displayName}\nloginName: ${login}`
       );
-      setRaiderLoginName(loginName);
+      setRaiderLoginName(login);
     },
     []
   );
@@ -89,9 +104,17 @@ export const Home = () => {
     });
     const client = clientRef.current;
     client.connect().catch(console.error);
-    client.on("connected", handleConnected);
+    // タグ（msg-param-*, display-name など）を IRC で有効化
+    client.on("connected", (address, port) => {
+      client.raw(
+        "CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership"
+      );
+      handleConnected(address, port);
+    });
+
     client.on("disconnected", handleDisconnected);
-    client.on("raided", handleRaided);
+    // client.on("raided", handleRaided);
+    client.on("usernotice", handleUserNotice);
 
     return () => {
       if (client.readyState() === "OPEN") {
@@ -105,7 +128,8 @@ export const Home = () => {
     targetLoginName,
     handleConnected,
     handleDisconnected,
-    handleRaided,
+    // handleRaided,
+    handleUserNotice,
     validate,
   ]);
 

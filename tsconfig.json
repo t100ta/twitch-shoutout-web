@@ -1,8 +1,8 @@
 {
   "files": [],
   "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
+    { "path": "tsconfig.app.json" },
+    { "path": "tsconfig.node.json" }
   ],
   "compilerOptions": {
     "target": "ESNext",
@@ -11,10 +11,6 @@
     "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"]
-    },
-    "typeRoots": [
-      "./.yarn/__virtual__/@types/*",
-      "./node_modules@types"
-    ]
+    }
   }
 }
