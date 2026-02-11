@@ -246,7 +246,7 @@ describe("hooks", () => {
     isAxiosErrorMock.mockReturnValue(true);
     axiosGetMock.mockRejectedValue({ response: { data: "bad" } });
 
-    const { mutationFn } = useMutateValidation();
+    const { mutationFn } = useMutateValidation() as any;
     await expect(mutationFn("oauth-token")).rejects.toThrow("Failed to validate");
   });
 
