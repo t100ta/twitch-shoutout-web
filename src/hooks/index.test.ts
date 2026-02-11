@@ -63,7 +63,7 @@ describe("hooks", () => {
     docMock.mockReset();
   });
 
-  it("useQueryUsers includes token in queryKeyHashFn", () => {
+  it("useQueryUsers includes token in queryKey", () => {
     let captured: any;
     useQueryMock.mockImplementation((options) => {
       captured = options;
@@ -71,8 +71,7 @@ describe("hooks", () => {
     });
 
     useQueryUsers("token-a", "login");
-    const hash = captured.queryKeyHashFn(["users", "login"]);
-    expect(hash).toContain("token-a");
+    expect(captured.queryKey).toEqual(["users", "login", "token-a"]);
     expect(captured.enabled).toBe(true);
   });
 
@@ -121,7 +120,7 @@ describe("hooks", () => {
     );
   });
 
-  it("useQueryChannels includes token in queryKeyHashFn", () => {
+  it("useQueryChannels includes token in queryKey", () => {
     let captured: any;
     useQueryMock.mockImplementation((options) => {
       captured = options;
@@ -129,8 +128,7 @@ describe("hooks", () => {
     });
 
     useQueryChannels("token-b", "broadcaster-id");
-    const hash = captured.queryKeyHashFn(["channels", "broadcaster-id"]);
-    expect(hash).toContain("token-b");
+    expect(captured.queryKey).toEqual(["channels", "broadcaster-id", "token-b"]);
     expect(captured.enabled).toBe(true);
   });
 

@@ -26,6 +26,7 @@ export const Home = () => {
   const ACCESS_TOKEN = botUser?.accessToken as string;
   const queryClient = useQueryClient();
   const clientRef = useRef<Client | null>(null);
+  const currentChannelRef = useRef<string | null>(null);
   const [targetDisplayName, setTargetDisplayName] = useState("");
   const [targetLoginName, setTargetLoginName] = useState("");
   const [targetId, setTargetId] = useState("");
@@ -88,11 +89,20 @@ export const Home = () => {
   );
 
   useEffect(() => {
+    if (!targetLoginName) {
+      return;
+    }
     if (
-      !targetLoginName ||
-      (clientRef.current && clientRef.current.readyState() === "OPEN")
+      clientRef.current &&
+      clientRef.current.readyState() === "OPEN" &&
+      currentChannelRef.current === targetLoginName
     ) {
       return;
+    }
+    if (clientRef.current) {
+      clientRef.current.disconnect();
+      clientRef.current = null;
+      currentChannelRef.current = null;
     }
     // TODO エラー時に再ログインを促す処理が欲しい
     validate.mutate(ACCESS_TOKEN);
@@ -109,6 +119,7 @@ export const Home = () => {
       options: { skipUpdatingEmotesets: true },
     });
     const client = clientRef.current;
+    currentChannelRef.current = targetLoginName;
     client.connect().catch(console.error);
     // タグ（msg-param-*, display-name など）を IRC で有効化
     client.on("connected", (address, port) => {

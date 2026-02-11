@@ -18,8 +18,11 @@ export const replaceText = (text: string, data?: ShoutoutProperties) => {
 
   const sampleUser: ShoutoutUser = {
     $displayname: data.displayName,
+    $displayName: data.displayName,
     $loginname: data.name,
+    $loginName: data.name,
     $category: data.game,
+    $game: data.game,
     $title: data.title,
   };
   let replacedText: string = text;

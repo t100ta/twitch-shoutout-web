@@ -30,13 +30,10 @@ export const useQueryUsers = (token: string, loginName: string) => {
     }
   };
   return useQuery<User[]>({
-    queryKey: ["users", loginName],
+    queryKey: ["users", loginName, token],
     queryFn: getUsers,
     enabled: !!loginName,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,
-    queryKeyHashFn: (queryKey) => {
-      return JSON.stringify(queryKey) + token;
-    },
   });
 };

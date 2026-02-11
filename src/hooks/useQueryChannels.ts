@@ -30,13 +30,10 @@ export const useQueryChannels = (token: string, broadcasterId: string) => {
     }
   };
   return useQuery<Channel[]>({
-    queryKey: ["channels", broadcasterId],
+    queryKey: ["channels", broadcasterId, token],
     queryFn: getChannels,
     enabled: !!broadcasterId,
     staleTime: 1000 * 60,
     gcTime: 1000 * 60 * 2,
-    queryKeyHashFn: (queryKey) => {
-      return JSON.stringify(queryKey) + token;
-    },
   });
 };
