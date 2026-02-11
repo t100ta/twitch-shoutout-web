@@ -35,7 +35,7 @@ type SetStoreState = (
   partial:
     | Partial<StoreState>
     | ((state: StoreState) => Partial<StoreState>),
-  replace?: boolean
+  replace?: false
 ) => void;
 
 const createAuthSlice = (set: SetStoreState): AuthSlice => ({
