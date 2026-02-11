@@ -16,18 +16,6 @@ type AuthSlice = {
   setAppToken: (token: string) => void;
   clearAppToken: () => void;
 };
-const createAuthSlice = (set: any): AuthSlice => ({
-  appToken: getCookie(COOKIE_KEY) || "",
-  setAppToken: (token) => {
-    setCookie(COOKIE_KEY, token, COOKIE_OPTIONS);
-    set({ appToken: token });
-  },
-  clearAppToken: () => {
-    removeCookie(COOKIE_KEY, { path: "/" });
-    set({ appToken: "" });
-  },
-});
-
 export type BotUser = {
   accessToken: string;
   id: string;
@@ -41,7 +29,28 @@ type UserSlice = {
   setBotUser: (botUser: BotUser) => void;
   clearBotUser: () => void;
 };
-const createUserSlice = (set: any): UserSlice => ({
+
+type StoreState = AuthSlice & UserSlice;
+type SetStoreState = (
+  partial:
+    | Partial<StoreState>
+    | ((state: StoreState) => Partial<StoreState>),
+  replace?: boolean
+) => void;
+
+const createAuthSlice = (set: SetStoreState): AuthSlice => ({
+  appToken: getCookie(COOKIE_KEY) || "",
+  setAppToken: (token) => {
+    setCookie(COOKIE_KEY, token, COOKIE_OPTIONS);
+    set({ appToken: token });
+  },
+  clearAppToken: () => {
+    removeCookie(COOKIE_KEY, { path: "/" });
+    set({ appToken: "" });
+  },
+});
+
+const createUserSlice = (set: SetStoreState): UserSlice => ({
   botUser: null,
   setBotUser: (state) => {
     set(() => ({ botUser: state }));

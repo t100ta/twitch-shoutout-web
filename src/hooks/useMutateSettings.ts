@@ -27,8 +27,12 @@ export const useMutateSettings = () => {
         queryClient.setQueryData(["settings", payload.twitchId], payload.data);
       }
     },
-    onError: (err: any) => {
-      console.log(err.response.data.message);
+    onError: (err: unknown) => {
+      if (err instanceof Error) {
+        console.log(err.message);
+      } else {
+        console.log(err);
+      }
     },
   });
   return createSettingsMutation;

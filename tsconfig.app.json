@@ -20,7 +20,13 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+
+    "typeRoots": [
+      "./.yarn/__virtual__/@types/*",
+      "./node_modules/@types",
+      "./src/types"
+    ]
   },
-  "include": ["src"]
+  "include": ["src", "src/types"]
 }
