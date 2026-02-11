@@ -72,7 +72,7 @@ export const Home = () => {
       }
 
       const login = tags["msg-param-login"]!;
-      const displayName = tags["msg-param-display-name"] || login;
+      const displayName = tags["msg-param-displayName"] || login;
       console.log(
         `Detected "raided"\nchannel: ${channel}\nusername: ${displayName}\nloginName: ${login}`
       );
