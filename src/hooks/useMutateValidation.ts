@@ -23,6 +23,9 @@ export const useMutateValidation = () => {
         }
         return data;
       } catch (error: unknown) {
+        if (error instanceof Error && error.message === "Token is invalid") {
+          throw error;
+        }
         if (axios.isAxiosError(error)) {
           console.error(
             "Validation error:",

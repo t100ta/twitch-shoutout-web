@@ -239,7 +239,7 @@ describe("hooks", () => {
 
     const { mutationFn } = useMutateValidation();
     await expect(mutationFn("oauth-token")).rejects.toThrow(
-      "An unexpected error occurred"
+      "Token is invalid"
     );
   });
 

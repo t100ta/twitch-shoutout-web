@@ -13,6 +13,12 @@ import { useQuerySettings } from "../hooks/useQuerySettings";
 import { useMutateValidation } from "../hooks/useMutateValidation";
 import { shoutoutMessageStyle, userSettingItemStyle } from "./Home.css";
 
+const RAID_TAGS = {
+  msgId: "msg-id",
+  login: "msg-param-login",
+  displayName: "msg-param-displayName",
+} as const;
+
 // TODO tokenリフレッシュ入れたほうがいいかも https://dev.twitch.tv/docs/authentication/refresh-tokens/
 export const Home = () => {
   const navigate = useNavigate();
@@ -67,12 +73,12 @@ export const Home = () => {
   // );
   const handleUserNotice = useCallback(
     (channel: string, tags: ChatUserstate) => {
-      if (tags["msg-id"] !== "raid") {
+      if (tags[RAID_TAGS.msgId] !== "raid") {
         return;
       }
 
-      const login = tags["msg-param-login"]!;
-      const displayName = tags["msg-param-displayName"] || login;
+      const login = tags[RAID_TAGS.login]!;
+      const displayName = tags[RAID_TAGS.displayName] || login;
       console.log(
         `Detected "raided"\nchannel: ${channel}\nusername: ${displayName}\nloginName: ${login}`
       );
