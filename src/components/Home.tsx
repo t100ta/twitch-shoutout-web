@@ -1,42 +1,20 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChatUserstate, Client } from "tmi.js";
-import { useQueryClient } from "@tanstack/react-query";
 import useStore from "../store";
-import { replaceText, wait } from "../utils";
+import { replaceText } from "../utils";
 import { Channel, User } from "../types";
 import { Header } from "./shared/Header";
 import { useQueryUsers } from "../hooks/useQueryUsers";
 import { useQueryChannels } from "../hooks/useQueryChannels";
-import { useMutateShoutout } from "../hooks/useMutateShoutout";
 import { useQuerySettings } from "../hooks/useQuerySettings";
-import { useMutateValidation } from "../hooks/useMutateValidation";
+import { useRaidListener } from "../hooks/useRaidListener";
+import { useRaidShoutout } from "../hooks/useRaidShoutout";
 import { shoutoutMessageStyle, userSettingItemStyle } from "./Home.css";
-
-const RAID_TAGS = {
-  msgId: "msg-id",
-  login: "msg-param-login",
-  displayName: "msg-param-displayName",
-} as const;
 
 export const Home = () => {
   const navigate = useNavigate();
   const { botUser, clearAppToken, clearBotUser } = useStore();
   const ACCESS_TOKEN = botUser?.accessToken as string;
-  const queryClient = useQueryClient();
-  const clientRef = useRef<Client | null>(null);
-  const currentChannelRef = useRef<string | null>(null);
-  const [isTokenInvalid, setIsTokenInvalid] = useState(false);
-  const [raiderLoginName, setRaiderLoginName] = useState("");
-  const { data: raiderUsersData } = useQueryUsers(
-    ACCESS_TOKEN,
-    raiderLoginName
-  );
-  const raiderId = raiderUsersData ? raiderUsersData[0].id : null;
-  const { data: raiderChannelsData } = useQueryChannels(
-    ACCESS_TOKEN,
-    raiderId as string
-  );
   const {
     data: userSettings,
     isLoading: isUserSettingsLoading,
@@ -69,6 +47,26 @@ export const Home = () => {
     };
   }, [userSettings, botUser?.displayName, botUser?.loginName, botUser?.id]);
 
+  const { clientRef, raiderLoginName, isTokenInvalid } = useRaidListener({
+    accessToken: ACCESS_TOKEN,
+    targetLoginName,
+    botUserDisplayName: botUser?.displayName,
+    onTokenInvalid: () => {
+      clearAppToken();
+      clearBotUser();
+    },
+  });
+
+  const { data: raiderUsersData } = useQueryUsers(
+    ACCESS_TOKEN,
+    raiderLoginName
+  );
+  const raiderId = raiderUsersData ? raiderUsersData[0].id : null;
+  const { data: raiderChannelsData } = useQueryChannels(
+    ACCESS_TOKEN,
+    raiderId as string
+  );
+
   const shoutoutData = useMemo<{
     users: User[];
     channels: Channel[];
@@ -79,163 +77,16 @@ export const Home = () => {
     return { users: raiderUsersData, channels: raiderChannelsData };
   }, [raiderUsersData, raiderChannelsData]);
 
-  const validate = useMutateValidation();
-  const shoutoutCommandExecute = useMutateShoutout();
-
-  const handleConnected = useCallback((address: string, port: number) => {
-    console.log(`Connected! : ${address}:${port}`);
-  }, []);
-  const handleDisconnected = useCallback((reason: string) => {
-    console.log("Disconnected from Twitch chat:", reason);
-  }, []);
-  // const handleRaided = useCallback(
-  //   (channel: string, username: string, viewers: number, loginName: string) => {
-  //     console.log(
-  //       `Detected "raided"\nchannel: ${channel}\nusername: ${username}\nviewer: ${viewers}\nloginName: ${loginName}`
-  //     );
-  //     setRaiderLoginName(loginName);
-  //   },
-  //   []
-  // );
-  const handleUserNotice = useCallback(
-    (channel: string, tags: ChatUserstate) => {
-      if (tags[RAID_TAGS.msgId] !== "raid") {
-        return;
-      }
-
-      const login = tags[RAID_TAGS.login]!;
-      const displayName = tags[RAID_TAGS.displayName] || login;
-      console.log(
-        `Detected "raided"\nchannel: ${channel}\nusername: ${displayName}\nloginName: ${login}`
-      );
-      setRaiderLoginName(login);
-    },
-    []
-  );
-
-  useEffect(() => {
-    if (isTokenInvalid) {
-      return;
-    }
-    if (!targetLoginName) {
-      return;
-    }
-    if (
-      clientRef.current &&
-      clientRef.current.readyState() === "OPEN" &&
-      currentChannelRef.current === targetLoginName
-    ) {
-      return;
-    }
-    if (clientRef.current) {
-      clientRef.current.disconnect();
-      clientRef.current = null;
-      currentChannelRef.current = null;
-    }
-    validate.mutate(ACCESS_TOKEN, {
-      onError: () => {
-        setIsTokenInvalid(true);
-        clearAppToken();
-        clearBotUser();
-      },
-    });
-    clientRef.current = new Client({
-      connection: {
-        reconnect: true,
-        secure: true,
-      },
-      identity: {
-        username: botUser?.displayName,
-        password: `${ACCESS_TOKEN}`,
-      },
-      channels: [targetLoginName],
-      options: { skipUpdatingEmotesets: true },
-    });
-    const client = clientRef.current;
-    currentChannelRef.current = targetLoginName;
-    client.connect().catch(console.error);
-    // タグ（msg-param-*, display-name など）を IRC で有効化
-    client.on("connected", (address, port) => {
-      client.raw(
-        "CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership"
-      );
-      handleConnected(address, port);
-    });
-
-    client.on("disconnected", handleDisconnected);
-    // client.on("raided", handleRaided);
-    client.on("usernotice", handleUserNotice);
-
-    return () => {
-      if (client.readyState() === "OPEN") {
-        client.disconnect();
-      }
-      clientRef.current = null;
-    };
-  }, [
-    botUser,
-    ACCESS_TOKEN,
-    targetLoginName,
-    handleConnected,
-    handleDisconnected,
-    // handleRaided,
-    handleUserNotice,
-    validate,
-    isTokenInvalid,
-    clearAppToken,
-    clearBotUser,
-  ]);
-
-  useEffect(() => {
-    if (!shoutoutData || !clientRef.current) {
-      return;
-    }
-    const { users, channels } = shoutoutData;
-    const user = users[0];
-    const channel = channels[0];
-    queryClient.invalidateQueries({
-      queryKey: ["channel", user.id],
-    });
-
-    clientRef.current?.say(
-      targetLoginName as string,
-      replaceText(shoutoutMessage as string, {
-        displayName: channel.broadcaster_name,
-        name: channel.broadcaster,
-        game: channel.game_name,
-        title: channel.title,
-      })
-    );
-
-    if (isShoutoutCommandExecute) {
-      const executeShoutout = async () => {
-        try {
-          await wait(3 * 1000);
-          const result = await shoutoutCommandExecute.mutateAsync({
-            token: ACCESS_TOKEN,
-            fromBroadcasterId: targetId,
-            toBroadcasterId: channel.broadcaster_id,
-            moderatorId: botUser?.id as string,
-          });
-          console.log("Shoutout executed successfully:", result);
-        } catch (error) {
-          console.error("Failed to execute shoutout:", error);
-        }
-      };
-
-      executeShoutout();
-    }
-  }, [
+  useRaidShoutout({
+    clientRef,
     shoutoutData,
-    queryClient,
     targetLoginName,
-    targetId,
     shoutoutMessage,
     isShoutoutCommandExecute,
-    ACCESS_TOKEN,
-    botUser?.id,
-    shoutoutCommandExecute,
-  ]);
+    accessToken: ACCESS_TOKEN,
+    targetId,
+    botUserId: botUser?.id,
+  });
 
   if (isUserSettingsLoading) {
     return <div>Loading...</div>;
