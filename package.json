@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "preview": "vite preview",
     "deploy": "yarn build && firebase deploy --only hosting"
   },
@@ -37,6 +38,7 @@
     "@types/react-dom": "^18.3.1",
     "@types/tmi.js": "file:src/types/tmi.js",
     "@vitejs/plugin-react-swc": "^3.7.2",
+    "@vitest/coverage-v8": "^4.0.18",
     "eslint": "^9.16.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-react": "^7.37.2",

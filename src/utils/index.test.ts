@@ -1,14 +1,21 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+const mockSignInWithCustomToken = vi.hoisted(() => vi.fn());
+const mockGetIdTokenResult = vi.hoisted(() => vi.fn());
 
 vi.mock("../firebase", () => ({
-  auth: {},
+  auth: {
+    currentUser: {
+      getIdTokenResult: mockGetIdTokenResult,
+    },
+  },
 }));
 
 vi.mock("firebase/auth", () => ({
-  signInWithCustomToken: vi.fn(),
+  signInWithCustomToken: mockSignInWithCustomToken,
 }));
 
-import { replaceText, wait } from "./index";
+import { replaceText, wait, signInWithTwitch } from "./index";
 
 describe("replaceText", () => {
   it("replaces placeholders with default labels when data is missing", () => {
@@ -50,5 +57,60 @@ describe("wait", () => {
     await expect(done).resolves.toBeUndefined();
 
     vi.useRealTimers();
+  });
+});
+
+describe("signInWithTwitch", () => {
+  beforeEach(() => {
+    mockSignInWithCustomToken.mockReset();
+    mockGetIdTokenResult.mockReset();
+  });
+
+  it("returns false when appToken is empty", async () => {
+    const setBotUser = vi.fn();
+    const result = await signInWithTwitch("", null, setBotUser);
+    expect(result).toBe(false);
+    expect(setBotUser).not.toHaveBeenCalled();
+  });
+
+  it("skips firebase sign-in when botUser already exists", async () => {
+    const setBotUser = vi.fn();
+    const result = await signInWithTwitch("token", {
+      accessToken: "token",
+      id: "1",
+      displayName: "name",
+      loginName: "login",
+      icon: "icon",
+    }, setBotUser);
+
+    expect(result).toBe(true);
+    expect(mockSignInWithCustomToken).not.toHaveBeenCalled();
+    expect(setBotUser).not.toHaveBeenCalled();
+  });
+
+  it("signs in and sets bot user from claims", async () => {
+    mockSignInWithCustomToken.mockResolvedValue(undefined);
+    mockGetIdTokenResult.mockResolvedValue({
+      claims: {
+        twitch_access_token: "access",
+        twitch_id: "twitch-id",
+        twitch_display_name: "Display",
+        twitch_login_name: "login",
+        twitch_icon: "icon",
+      },
+    });
+
+    const setBotUser = vi.fn();
+    const result = await signInWithTwitch("token", null, setBotUser);
+
+    expect(result).toBe(true);
+    expect(mockSignInWithCustomToken).toHaveBeenCalled();
+    expect(setBotUser).toHaveBeenCalledWith({
+      accessToken: "access",
+      id: "twitch-id",
+      displayName: "Display",
+      loginName: "login",
+      icon: "icon",
+    });
   });
 });
