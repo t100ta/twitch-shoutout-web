@@ -64,11 +64,14 @@ export const TargetChannelFinder = ({
         onChange={(event) => setChannelLoginName(event.target.value)}
         onBlur={() => checkExistence()}
       ></input>
-      <img
-        src={imgUrl}
-        alt={channelLoginName}
-        title={channelDisplayName}
-      />
+      {imgUrl ? (
+        <img
+          src={imgUrl}
+          alt={channelLoginName}
+          title={channelDisplayName}
+          loading="lazy"
+        />
+      ) : null}
       <p>{channelDisplayName}</p>
       <span>{text.current}</span>
     </>

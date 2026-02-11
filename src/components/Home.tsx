@@ -238,7 +238,11 @@ export const Home = () => {
     <>
       <Header />
       <p>Twitch Shoutout Web</p>
-      <img src={botUser?.icon} />
+      <img
+        src={botUser?.icon}
+        alt={botUser?.displayName || "Bot User"}
+        loading="lazy"
+      />
       <p>
         ようこそ{" "}
         <span className={userSettingItemStyle}>{botUser?.displayName}</span>{" "}
