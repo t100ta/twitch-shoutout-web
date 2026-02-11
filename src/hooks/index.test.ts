@@ -105,6 +105,22 @@ describe("hooks", () => {
     await expect(captured.queryFn()).rejects.toThrow("Twitch API error: 500");
   });
 
+  it("useQueryUsers queryFn throws on unexpected error", async () => {
+    let captured: any;
+    useQueryMock.mockImplementation((options) => {
+      captured = options;
+      return { data: null };
+    });
+    useQueryUsers("token-a", "login");
+
+    isAxiosErrorMock.mockReturnValue(false);
+    axiosGetMock.mockRejectedValue(new Error("boom"));
+
+    await expect(captured.queryFn()).rejects.toThrow(
+      "An unexpected error occurred"
+    );
+  });
+
   it("useQueryChannels includes token in queryKeyHashFn", () => {
     let captured: any;
     useQueryMock.mockImplementation((options) => {
@@ -145,6 +161,22 @@ describe("hooks", () => {
     axiosGetMock.mockRejectedValue({ response: { status: 401 }, message: "x" });
 
     await expect(captured.queryFn()).rejects.toThrow("Twitch API error: 401");
+  });
+
+  it("useQueryChannels queryFn throws on unexpected error", async () => {
+    let captured: any;
+    useQueryMock.mockImplementation((options) => {
+      captured = options;
+      return { data: null };
+    });
+    useQueryChannels("token-b", "broadcaster-id");
+
+    isAxiosErrorMock.mockReturnValue(false);
+    axiosGetMock.mockRejectedValue(new Error("boom"));
+
+    await expect(captured.queryFn()).rejects.toThrow(
+      "An unexpected error occurred"
+    );
   });
 
   it("useQuerySettings sets enabled by twitchId", () => {
@@ -322,6 +354,9 @@ describe("hooks", () => {
 
     captured.onError(new Error("boom"));
     expect(consoleSpy).toHaveBeenCalledWith("boom");
+
+    captured.onError("raw-error");
+    expect(consoleSpy).toHaveBeenCalledWith("raw-error");
 
     consoleSpy.mockRestore();
   });
