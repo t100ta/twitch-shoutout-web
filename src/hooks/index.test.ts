@@ -264,6 +264,7 @@ describe("hooks", () => {
 
     expect(axiosPostMock).toHaveBeenCalledWith(
       "https://api.twitch.tv/helix/chat/shoutouts",
+      null,
       {
         headers: {
           Authorization: "Bearer token",

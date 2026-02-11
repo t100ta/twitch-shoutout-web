@@ -11,17 +11,21 @@ export const useMutateShoutout = () => {
       moderatorId: string;
     }) => {
       try {
-        const { data } = await axios.post(`${TWITCH_API_URI}/chat/shoutouts`, {
-          headers: {
-            Authorization: `Bearer ${payload.token}`,
-            "Client-Id": TWITCH_CLIENT_ID,
-          },
-          params: {
-            from_broadcaster_id: payload.fromBroadcasterId,
-            to_broadcaster_id: payload.toBroadcasterId,
-            moderator_id: payload.moderatorId,
-          },
-        });
+        const { data } = await axios.post(
+          `${TWITCH_API_URI}/chat/shoutouts`,
+          null,
+          {
+            headers: {
+              Authorization: `Bearer ${payload.token}`,
+              "Client-Id": TWITCH_CLIENT_ID,
+            },
+            params: {
+              from_broadcaster_id: payload.fromBroadcasterId,
+              to_broadcaster_id: payload.toBroadcasterId,
+              moderator_id: payload.moderatorId,
+            },
+          }
+        );
         return data;
       } catch (error: unknown) {
         if (axios.isAxiosError(error)) {

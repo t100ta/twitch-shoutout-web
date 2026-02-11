@@ -83,6 +83,8 @@ VITE_FIREBASE_APP_ID=
 
 - Raid 検知は tmi.js の `usernotice` を利用しています。
 - テストでは Firebase 初期化のモックが必要です。
+- `/shoutout` の自動実行は Twitch API の Shoutout エンドポイントを使用します（`moderator:manage:shoutouts` スコープが必要）。
+- Shoutout は「配信中かつ視聴者がいる」「自分自身には送れない」「レート制限あり」などの制約があります。
 
 ## Shoutout Message Placeholders
 
