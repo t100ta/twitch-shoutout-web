@@ -48,7 +48,6 @@ export const MessageCreator = (props: Props) => {
           labelName="タイトル"
           clickFunc={() => setBundler(props.message + "$title")}
         />
-        ///
         <button
           type="button"
           onClick={() => props.handleShowModal(presetDialogRef)}
