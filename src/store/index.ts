@@ -11,17 +11,18 @@ const COOKIE_OPTIONS = {
   expires: 7,
 };
 
-type AuthSlice = {
-  appToken: string;
-  setAppToken: (token: string) => void;
-  clearAppToken: () => void;
-};
 export type BotUser = {
   accessToken: string;
   id: string;
   displayName: string;
   loginName: string;
   icon: string;
+};
+
+type AuthSlice = {
+  appToken: string;
+  setAppToken: (token: string) => void;
+  clearAppToken: () => void;
 };
 
 type UserSlice = {
