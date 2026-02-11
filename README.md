@@ -67,3 +67,5 @@ VITE_FIREBASE_APP_ID=
 ## Notes
 - Raid 検知は tmi.js の `usernotice` を利用しています。
 - テストでは Firebase 初期化のモックが必要です。
+- `tmi.js` はローカル同梱のカスタム版（`src/libs/tmi.js`）を使用しています。
+  - `raided` イベントで **loginName** を渡すための改造を含みます。
