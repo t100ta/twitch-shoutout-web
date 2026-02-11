@@ -218,7 +218,7 @@ describe("hooks", () => {
     useMutationMock.mockImplementation(({ mutationFn }) => ({ mutationFn }));
     axiosGetMock.mockResolvedValue({ data: {}, status: 200 });
 
-    const { mutationFn } = useMutateValidation();
+    const { mutationFn } = useMutateValidation() as any;
     await mutationFn("oauth-token");
 
     expect(axiosGetMock).toHaveBeenCalledWith(
@@ -235,7 +235,7 @@ describe("hooks", () => {
     useMutationMock.mockImplementation(({ mutationFn }) => ({ mutationFn }));
     axiosGetMock.mockResolvedValue({ data: {}, status: 500 });
 
-    const { mutationFn } = useMutateValidation();
+    const { mutationFn } = useMutateValidation() as any;
     await expect(mutationFn("oauth-token")).rejects.toThrow(
       "Token is invalid"
     );
@@ -254,7 +254,7 @@ describe("hooks", () => {
     useMutationMock.mockImplementation(({ mutationFn }) => ({ mutationFn }));
     axiosPostMock.mockResolvedValue({ data: {} });
 
-    const { mutationFn } = useMutateShoutout();
+    const { mutationFn } = useMutateShoutout() as any;
     await mutationFn({
       token: "token",
       fromBroadcasterId: "from",
@@ -284,7 +284,7 @@ describe("hooks", () => {
     isAxiosErrorMock.mockReturnValue(true);
     axiosPostMock.mockRejectedValue({ response: { data: "bad" } });
 
-    const { mutationFn } = useMutateShoutout();
+    const { mutationFn } = useMutateShoutout() as any;
     await expect(
       mutationFn({
         token: "token",
@@ -300,7 +300,7 @@ describe("hooks", () => {
     isAxiosErrorMock.mockReturnValue(false);
     axiosPostMock.mockRejectedValue(new Error("boom"));
 
-    const { mutationFn } = useMutateShoutout();
+    const { mutationFn } = useMutateShoutout() as any;
     await expect(
       mutationFn({
         token: "token",
@@ -325,7 +325,7 @@ describe("hooks", () => {
     collectionMock.mockReturnValue(settingsRef);
     docMock.mockReturnValue(docRef);
 
-    const { mutationFn } = useMutateSettings();
+    const { mutationFn } = useMutateSettings() as any;
     const payload = {
       twitchId: "123",
       data: {
