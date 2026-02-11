@@ -53,7 +53,7 @@ export const Home = () => {
   const handleConnected = useCallback((address: string, port: number) => {
     console.log(`Connected! : ${address}:${port}`);
   }, []);
-  const handleDisconnected = useCallback((reason: any) => {
+  const handleDisconnected = useCallback((reason: string) => {
     console.log("Disconnected from Twitch chat:", reason);
   }, []);
   const handleRaided = useCallback(
@@ -106,6 +106,7 @@ export const Home = () => {
     handleConnected,
     handleDisconnected,
     handleRaided,
+    validate,
   ]);
 
   useEffect(() => {
@@ -156,11 +157,13 @@ export const Home = () => {
   }, [
     shoutoutData,
     queryClient,
-    targetDisplayName,
+    targetLoginName,
     targetId,
     shoutoutMessage,
     isShoutoutCommandExecute,
     ACCESS_TOKEN,
+    botUser?.id,
+    shoutoutCommandExecute,
   ]);
 
   useEffect(() => {
@@ -185,10 +188,9 @@ export const Home = () => {
   }, [
     isUserSettingsSuccess,
     userSettings,
-    setTargetDisplayName,
-    setTargetDisplayName,
-    setShoutoutData,
-    setIsShoutoutCommandExecute,
+    botUser?.displayName,
+    botUser?.loginName,
+    botUser?.id,
   ]);
 
   if (isUserSettingsLoading) {

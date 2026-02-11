@@ -4,7 +4,6 @@ import { AUTH_API_URI } from "../constants";
 import useStore from "../store";
 import { Contact } from "./shared/Contact";
 import { signInWithTwitch } from "../utils";
-import { auth } from "../firebase";
 import logo from "../assets/logo.png";
 import { logoStyle } from "./Logo.css";
 
@@ -40,7 +39,15 @@ export const Login = () => {
         }
       })();
     }
-  }, [searchParams, navigate, auth, appToken, setToken, clearToken, botUser]);
+  }, [
+    searchParams,
+    navigate,
+    appToken,
+    setToken,
+    clearToken,
+    botUser,
+    setBotUser,
+  ]);
 
   const handleLoginWithTwitch = () =>
     (window.location.href = `${AUTH_API_URI}/authWithTwitch`);

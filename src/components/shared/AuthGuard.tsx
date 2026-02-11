@@ -27,7 +27,7 @@ export const AuthGuard = () => {
       setIsLoading(false);
     };
     checkAuth();
-  }, [appToken, clearToken]);
+  }, [appToken, clearToken, botUser, setBotUser]);
 
   useEffect(() => {
     if (!getAuth().currentUser && !isLoading) {
