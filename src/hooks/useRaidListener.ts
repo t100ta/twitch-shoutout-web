@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChatUserstate, Client } from "tmi.js";
 import { useMutateValidation } from "./useMutateValidation";
-import { getRaidInfo, shouldReuseClient } from "./raidUtils";
+import { getRaidInfo, shouldReuseClient } from "../utils/raidUtils";
 
 type Params = {
   accessToken: string;

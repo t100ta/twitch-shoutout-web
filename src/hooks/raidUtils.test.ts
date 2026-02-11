@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getRaidInfo, shouldReuseClient } from "./raidUtils";
+import { getRaidInfo, shouldReuseClient } from "../utils/raidUtils";
 
 describe("raidUtils", () => {
   it("getRaidInfo returns null when not raid", () => {
