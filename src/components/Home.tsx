@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChatUserstate, Client } from "tmi.js";
 import { useQueryClient } from "@tanstack/react-query";
@@ -27,17 +27,7 @@ export const Home = () => {
   const queryClient = useQueryClient();
   const clientRef = useRef<Client | null>(null);
   const currentChannelRef = useRef<string | null>(null);
-  const [targetDisplayName, setTargetDisplayName] = useState("");
-  const [targetLoginName, setTargetLoginName] = useState("");
-  const [targetId, setTargetId] = useState("");
-  const [shoutoutMessage, setShoutoutMessage] = useState("");
-  const [isShoutoutCommandExecute, setIsShoutoutCommandExecute] =
-    useState(false);
   const [raiderLoginName, setRaiderLoginName] = useState("");
-  const [shoutoutData, setShoutoutData] = useState<{
-    users: User[];
-    channels: Channel[];
-  } | null>(null);
   const { data: raiderUsersData } = useQueryUsers(
     ACCESS_TOKEN,
     raiderLoginName
@@ -53,6 +43,42 @@ export const Home = () => {
     isError: isUserSettingsError,
     isSuccess: isUserSettingsSuccess,
   } = useQuerySettings(botUser?.id as string);
+
+  const {
+    targetDisplayName,
+    targetLoginName,
+    targetId,
+    shoutoutMessage,
+    isShoutoutCommandExecute,
+  } = useMemo(() => {
+    if (userSettings) {
+      return {
+        targetDisplayName: userSettings.targetChannelDisplayName,
+        targetLoginName: userSettings.targetChannelLoginName,
+        targetId: userSettings.targetChannelId,
+        shoutoutMessage: userSettings.shoutoutMessage,
+        isShoutoutCommandExecute: userSettings.isShoutoutCommandExecute,
+      };
+    }
+    return {
+      targetDisplayName: botUser?.displayName || "",
+      targetLoginName: botUser?.loginName || "",
+      targetId: botUser?.id || "",
+      shoutoutMessage:
+        "◆◆◆ Thanks for the raid! $displayname さん( https://www.twitch.tv/$loginname ). | $category -$title",
+      isShoutoutCommandExecute: false,
+    };
+  }, [userSettings, botUser?.displayName, botUser?.loginName, botUser?.id]);
+
+  const shoutoutData = useMemo<{
+    users: User[];
+    channels: Channel[];
+  } | null>(() => {
+    if (!raiderUsersData || !raiderChannelsData) {
+      return null;
+    }
+    return { users: raiderUsersData, channels: raiderChannelsData };
+  }, [raiderUsersData, raiderChannelsData]);
 
   const validate = useMutateValidation();
   const shoutoutCommandExecute = useMutateShoutout();
@@ -151,12 +177,6 @@ export const Home = () => {
   ]);
 
   useEffect(() => {
-    if (raiderUsersData && raiderChannelsData) {
-      setShoutoutData({ users: raiderUsersData, channels: raiderChannelsData });
-    }
-  }, [raiderUsersData, raiderChannelsData]);
-
-  useEffect(() => {
     if (!shoutoutData || !clientRef.current) {
       return;
     }
@@ -205,33 +225,6 @@ export const Home = () => {
     ACCESS_TOKEN,
     botUser?.id,
     shoutoutCommandExecute,
-  ]);
-
-  useEffect(() => {
-    if (!isUserSettingsSuccess) {
-      return;
-    }
-    if (userSettings) {
-      setTargetDisplayName(userSettings.targetChannelDisplayName);
-      setTargetLoginName(userSettings.targetChannelLoginName);
-      setTargetId(userSettings.targetChannelId);
-      setShoutoutMessage(userSettings.shoutoutMessage);
-      setIsShoutoutCommandExecute(userSettings.isShoutoutCommandExecute);
-    } else {
-      setTargetDisplayName(botUser?.displayName as string);
-      setTargetLoginName(botUser?.loginName as string);
-      setTargetId(botUser?.id as string);
-      setShoutoutMessage(
-        "◆◆◆ Thanks for the raid! $displayname さん( https://www.twitch.tv/$loginname ). | $category -$title"
-      );
-      setIsShoutoutCommandExecute(false);
-    }
-  }, [
-    isUserSettingsSuccess,
-    userSettings,
-    botUser?.displayName,
-    botUser?.loginName,
-    botUser?.id,
   ]);
 
   if (isUserSettingsLoading) {
