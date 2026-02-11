@@ -264,6 +264,22 @@ describe("hooks", () => {
     ).rejects.toThrow("Failed to execute shoutout");
   });
 
+  it("useMutateShoutout throws on unexpected error", async () => {
+    useMutationMock.mockImplementation(({ mutationFn }) => ({ mutationFn }));
+    isAxiosErrorMock.mockReturnValue(false);
+    axiosPostMock.mockRejectedValue(new Error("boom"));
+
+    const { mutationFn } = useMutateShoutout();
+    await expect(
+      mutationFn({
+        token: "token",
+        fromBroadcasterId: "from",
+        toBroadcasterId: "to",
+        moderatorId: "mod",
+      })
+    ).rejects.toThrow("An unexpected error occurred");
+  });
+
   it("useMutateSettings writes settings to firestore", async () => {
     useMutationMock.mockImplementation(({ mutationFn }) => ({ mutationFn }));
     const setQueryDataMock = vi.fn();
@@ -292,6 +308,22 @@ describe("hooks", () => {
 
     await mutationFn(payload);
     expect(setDocMock).toHaveBeenCalledWith(docRef, payload.data);
+  });
+
+  it("useMutateSettings logs errors in onError", () => {
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    let captured: any;
+    useMutationMock.mockImplementation((options) => {
+      captured = options;
+      return options;
+    });
+    useMutateSettings();
+
+    captured.onError(new Error("boom"));
+    expect(consoleSpy).toHaveBeenCalledWith("boom");
+
+    consoleSpy.mockRestore();
   });
 
   it("useMutateSettings onSuccess updates cache only when previous settings exist", () => {
