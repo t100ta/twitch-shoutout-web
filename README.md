@@ -83,3 +83,12 @@ VITE_FIREBASE_APP_ID=
 
 - Raid 検知は tmi.js の `usernotice` を利用しています。
 - テストでは Firebase 初期化のモックが必要です。
+
+## Shoutout Message Placeholders
+
+以下のプレースホルダを `Shoutoutメッセージ` で利用できます。
+
+- `$displayname` / `$displayName`: 表示名
+- `$loginname` / `$loginName`: ログイン名
+- `$category` / `$game`: カテゴリ名
+- `$title`: 配信タイトル

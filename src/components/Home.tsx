@@ -19,14 +19,14 @@ const RAID_TAGS = {
   displayName: "msg-param-displayName",
 } as const;
 
-// TODO tokenリフレッシュ入れたほうがいいかも https://dev.twitch.tv/docs/authentication/refresh-tokens/
 export const Home = () => {
   const navigate = useNavigate();
-  const { botUser } = useStore();
+  const { botUser, clearAppToken, clearBotUser } = useStore();
   const ACCESS_TOKEN = botUser?.accessToken as string;
   const queryClient = useQueryClient();
   const clientRef = useRef<Client | null>(null);
   const currentChannelRef = useRef<string | null>(null);
+  const [isTokenInvalid, setIsTokenInvalid] = useState(false);
   const [raiderLoginName, setRaiderLoginName] = useState("");
   const { data: raiderUsersData } = useQueryUsers(
     ACCESS_TOKEN,
@@ -114,6 +114,9 @@ export const Home = () => {
   );
 
   useEffect(() => {
+    if (isTokenInvalid) {
+      return;
+    }
     if (!targetLoginName) {
       return;
     }
@@ -129,8 +132,13 @@ export const Home = () => {
       clientRef.current = null;
       currentChannelRef.current = null;
     }
-    // TODO エラー時に再ログインを促す処理が欲しい
-    validate.mutate(ACCESS_TOKEN);
+    validate.mutate(ACCESS_TOKEN, {
+      onError: () => {
+        setIsTokenInvalid(true);
+        clearAppToken();
+        clearBotUser();
+      },
+    });
     clientRef.current = new Client({
       connection: {
         reconnect: true,
@@ -173,6 +181,9 @@ export const Home = () => {
     // handleRaided,
     handleUserNotice,
     validate,
+    isTokenInvalid,
+    clearAppToken,
+    clearBotUser,
   ]);
 
   useEffect(() => {
@@ -231,6 +242,14 @@ export const Home = () => {
   }
   if (isUserSettingsError) {
     return <div>Error</div>;
+  }
+  if (isTokenInvalid) {
+    return (
+      <div>
+        <p>認証の有効期限が切れています。再ログインしてください。</p>
+        <button onClick={() => navigate("/")}>ログインへ</button>
+      </div>
+    );
   }
 
   return (
