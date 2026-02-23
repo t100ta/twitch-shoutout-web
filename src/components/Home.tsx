@@ -9,12 +9,21 @@ import { useQueryChannels } from "../hooks/useQueryChannels";
 import { useQuerySettings } from "../hooks/useQuerySettings";
 import { useRaidListener } from "../hooks/useRaidListener";
 import { useRaidShoutout } from "../hooks/useRaidShoutout";
-import { shoutoutMessageStyle, userSettingItemStyle } from "./Home.css";
+import { useBrowserSessionWarning } from "../hooks/useBrowserSessionWarning";
+import {
+  cautionTextStyle,
+  shoutoutMessageStyle,
+  userSettingItemStyle,
+  warningBoxStyle,
+} from "./Home.css";
 
 export const Home = () => {
   const navigate = useNavigate();
   const { botUser, clearAppToken, clearBotUser } = useStore();
   const ACCESS_TOKEN = botUser?.accessToken as string;
+  const { hasMultipleSessions } = useBrowserSessionWarning(
+    (botUser?.id as string) || ""
+  );
   const {
     data: userSettings,
     isLoading: isUserSettingsLoading,
@@ -107,6 +116,14 @@ export const Home = () => {
     <>
       <Header />
       <p>Twitch Shoutout Web</p>
+      {hasMultipleSessions ? (
+        <div className={warningBoxStyle}>
+          同一ブラウザ内でこのアカウントのタブが複数開かれています。Shoutout処理が重複実行される可能性があるため、1タブにしてください。
+        </div>
+      ) : null}
+      <p className={cautionTextStyle}>
+        注意: この警告は同一ブラウザ内のタブのみ検知します。別ブラウザ・別端末での同時ログインは検知できません。
+      </p>
       <img
         src={botUser?.icon}
         alt={botUser?.displayName || "Bot User"}
