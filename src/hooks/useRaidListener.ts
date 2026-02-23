@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChatUserstate, Client } from "tmi.js";
-import { useMutateValidation } from "./useMutateValidation";
+import { TOKEN_INVALID_ERROR, useMutateValidation } from "./useMutateValidation";
 import { getRaidInfo, shouldReuseClient } from "../utils/raidUtils";
 
 type Params = {
@@ -72,11 +72,18 @@ export const useRaidListener = ({
         await validate.mutateAsync(accessToken);
       } catch (error) {
         console.error("Twitch token validation failed:", error);
-        if (!isDisposed) {
+        if (
+          !isDisposed &&
+          error instanceof Error &&
+          error.message === TOKEN_INVALID_ERROR
+        ) {
           setIsTokenInvalid(true);
           onTokenInvalid();
+          return;
         }
-        return;
+        console.warn(
+          "Skip forced logout because validation failed for a non-auth reason."
+        );
       }
 
       if (isDisposed) {

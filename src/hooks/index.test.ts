@@ -27,6 +27,7 @@ vi.mock("axios", () => ({
   },
   HttpStatusCode: {
     Ok: 200,
+    Unauthorized: 401,
   },
   isAxiosError: isAxiosErrorMock,
 }));
@@ -48,6 +49,10 @@ import { useQuerySettings } from "./useQuerySettings";
 import { useMutateValidation } from "./useMutateValidation";
 import { useMutateShoutout } from "./useMutateShoutout";
 import { useMutateSettings } from "./useMutateSettings";
+import {
+  TOKEN_INVALID_ERROR,
+  VALIDATION_FAILED_ERROR,
+} from "./useMutateValidation";
 
 describe("hooks", () => {
   beforeEach(() => {
@@ -237,17 +242,17 @@ describe("hooks", () => {
 
     const { mutationFn } = useMutateValidation() as any;
     await expect(mutationFn("oauth-token")).rejects.toThrow(
-      "Token is invalid"
+      VALIDATION_FAILED_ERROR
     );
   });
 
   it("useMutateValidation throws on axios error", async () => {
     useMutationMock.mockImplementation(({ mutationFn }) => ({ mutationFn }));
     isAxiosErrorMock.mockReturnValue(true);
-    axiosGetMock.mockRejectedValue({ response: { data: "bad" } });
+    axiosGetMock.mockRejectedValue({ response: { status: 401, data: "bad" } });
 
     const { mutationFn } = useMutateValidation() as any;
-    await expect(mutationFn("oauth-token")).rejects.toThrow("Failed to validate");
+    await expect(mutationFn("oauth-token")).rejects.toThrow(TOKEN_INVALID_ERROR);
   });
 
   it("useMutateShoutout posts to twitch API", async () => {
