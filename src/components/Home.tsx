@@ -119,11 +119,11 @@ export const Home = () => {
       {hasMultipleSessions ? (
         <div className={warningBoxStyle}>
           同一ブラウザ内でこのアカウントのタブが複数開かれています。Shoutout処理が重複実行される可能性があるため、1タブにしてください。
+          <p className={cautionTextStyle}>
+            注意: この警告は同一ブラウザ内のタブのみ検知します。別ブラウザ・別端末での同時ログインは検知できません。
+          </p>
         </div>
       ) : null}
-      <p className={cautionTextStyle}>
-        注意: この警告は同一ブラウザ内のタブのみ検知します。別ブラウザ・別端末での同時ログインは検知できません。
-      </p>
       <img
         src={botUser?.icon}
         alt={botUser?.displayName || "Bot User"}

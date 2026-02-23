@@ -20,7 +20,8 @@ export const warningBoxStyle = style({
 });
 
 export const cautionTextStyle = style({
-  color: "#6b7280",
+  color: "inherit",
   fontSize: "0.9rem",
-  marginBottom: "0.75rem",
+  marginTop: "0.5rem",
+  marginBottom: 0,
 });
