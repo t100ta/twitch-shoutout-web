@@ -2,13 +2,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mockSignInWithCustomToken = vi.hoisted(() => vi.fn());
 const mockGetIdTokenResult = vi.hoisted(() => vi.fn());
+const mockAuth: { currentUser: any } = vi.hoisted(() => ({
+  currentUser: {
+    getIdTokenResult: mockGetIdTokenResult,
+  },
+}));
 
 vi.mock("../firebase", () => ({
-  auth: {
-    currentUser: {
-      getIdTokenResult: mockGetIdTokenResult,
-    },
-  },
+  auth: mockAuth,
 }));
 
 vi.mock("firebase/auth", () => ({
@@ -16,7 +17,6 @@ vi.mock("firebase/auth", () => ({
 }));
 
 import { replaceText, wait, signInWithTwitch } from "./index";
-
 describe("replaceText", () => {
   it("replaces placeholders with default labels when data is missing", () => {
     const result = replaceText(
@@ -64,27 +64,15 @@ describe("signInWithTwitch", () => {
   beforeEach(() => {
     mockSignInWithCustomToken.mockReset();
     mockGetIdTokenResult.mockReset();
+    mockAuth.currentUser = {
+      getIdTokenResult: mockGetIdTokenResult,
+    };
   });
 
   it("returns false when appToken is empty", async () => {
     const setBotUser = vi.fn();
-    const result = await signInWithTwitch("", null, setBotUser);
-    expect(result).toBe(false);
-    expect(setBotUser).not.toHaveBeenCalled();
-  });
-
-  it("skips firebase sign-in when botUser already exists", async () => {
-    const setBotUser = vi.fn();
-    const result = await signInWithTwitch("token", {
-      accessToken: "token",
-      id: "1",
-      displayName: "name",
-      loginName: "login",
-      icon: "icon",
-    }, setBotUser);
-
-    expect(result).toBe(true);
-    expect(mockSignInWithCustomToken).not.toHaveBeenCalled();
+    const result = await signInWithTwitch("", setBotUser);
+    expect(result).toEqual({ ok: false, reason: "APP_TOKEN_MISSING" });
     expect(setBotUser).not.toHaveBeenCalled();
   });
 
@@ -101,9 +89,9 @@ describe("signInWithTwitch", () => {
     });
 
     const setBotUser = vi.fn();
-    const result = await signInWithTwitch("token", null, setBotUser);
+    const result = await signInWithTwitch("token", setBotUser);
 
-    expect(result).toBe(true);
+    expect(result).toEqual({ ok: true });
     expect(mockSignInWithCustomToken).toHaveBeenCalled();
     expect(setBotUser).toHaveBeenCalledWith({
       accessToken: "access",
@@ -119,12 +107,39 @@ describe("signInWithTwitch", () => {
     mockSignInWithCustomToken.mockRejectedValue(new Error("boom"));
 
     const setBotUser = vi.fn();
-    const result = await signInWithTwitch("token", null, setBotUser);
+    const result = await signInWithTwitch("token", setBotUser);
 
-    expect(result).toBe(true);
+    expect(result).toEqual({ ok: false, reason: "SIGN_IN_FAILED" });
     expect(setBotUser).not.toHaveBeenCalled();
     expect(consoleSpy).toHaveBeenCalled();
 
     consoleSpy.mockRestore();
+  });
+
+  it("returns failure when custom token sign-in succeeds but currentUser is missing", async () => {
+    mockSignInWithCustomToken.mockResolvedValue(undefined);
+    mockAuth.currentUser = null;
+
+    const setBotUser = vi.fn();
+    const result = await signInWithTwitch("token", setBotUser);
+
+    expect(result).toEqual({ ok: false, reason: "CURRENT_USER_MISSING" });
+    expect(setBotUser).not.toHaveBeenCalled();
+  });
+
+  it("returns failure when required claims are missing", async () => {
+    mockSignInWithCustomToken.mockResolvedValue(undefined);
+    mockGetIdTokenResult.mockResolvedValue({
+      claims: {
+        twitch_access_token: "access",
+        twitch_id: "twitch-id",
+      },
+    });
+
+    const setBotUser = vi.fn();
+    const result = await signInWithTwitch("token", setBotUser);
+
+    expect(result).toEqual({ ok: false, reason: "CLAIMS_MISSING" });
+    expect(setBotUser).not.toHaveBeenCalled();
   });
 });

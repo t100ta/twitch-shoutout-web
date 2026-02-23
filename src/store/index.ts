@@ -57,15 +57,7 @@ const createUserSlice = (set: SetStoreState): UserSlice => ({
     set(() => ({ botUser: state }));
   },
   clearBotUser: () => {
-    set(() => ({
-      botUser: {
-        accessToken: "",
-        id: "",
-        displayName: "",
-        loginName: "",
-        icon: "",
-      },
-    }));
+    set(() => ({ botUser: null }));
   },
 });
 

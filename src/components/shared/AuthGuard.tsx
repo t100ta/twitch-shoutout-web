@@ -10,24 +10,24 @@ export const AuthGuard = () => {
   const {
     appToken,
     clearAppToken: clearToken,
-    botUser,
+    clearBotUser,
     setBotUser,
   } = useStore();
 
   useEffect(() => {
     const checkAuth = async () => {
       if (!getAuth().currentUser && appToken) {
-        try {
-          await signInWithTwitch(appToken, botUser, setBotUser);
-        } catch (error) {
-          console.error("Cookie Login Error", error);
+        const signInResult = await signInWithTwitch(appToken, setBotUser);
+        if (!signInResult.ok) {
+          console.error("Cookie Login Error", signInResult.reason);
           clearToken();
+          clearBotUser();
         }
       }
       setIsLoading(false);
     };
     checkAuth();
-  }, [appToken, clearToken, botUser, setBotUser]);
+  }, [appToken, clearToken, clearBotUser, setBotUser]);
 
   useEffect(() => {
     if (!getAuth().currentUser && !isLoading) {

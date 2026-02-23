@@ -1,7 +1,7 @@
 import { signInWithCustomToken } from "firebase/auth";
 import { auth } from "../firebase";
 import { ShoutoutProperties } from "../types";
-import { BotUser } from "../store";
+import type { BotUser } from "../store";
 
 type ShoutoutUser = {
   [key: string]: string;
@@ -35,34 +35,50 @@ export const replaceText = (text: string, data?: ShoutoutProperties) => {
 
 export const signInWithTwitch = async (
   appToken: string,
-  botUser: BotUser | null,
   setBotUser: (user: BotUser) => void
 ) => {
   if (!appToken) {
-    return false;
+    return { ok: false as const, reason: "APP_TOKEN_MISSING" as const };
   }
 
-  if (botUser === null) {
-    try {
-      await signInWithCustomToken(auth, appToken);
-      const currentUser = auth.currentUser;
-      if (currentUser) {
-        const idTokenResult = await currentUser.getIdTokenResult();
-        const claims = idTokenResult.claims;
-        setBotUser({
-          accessToken: claims.twitch_access_token as string,
-          id: claims.twitch_id as string,
-          displayName: claims.twitch_display_name as string,
-          loginName: claims.twitch_login_name as string,
-          icon: claims.twitch_icon as string,
-        });
-        console.log("Twitch Login Name: ", claims.twitch_login_name);
-      }
-    } catch (error) {
-      console.error("Error signing in with Twitch: ", error);
+  try {
+    await signInWithCustomToken(auth, appToken);
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      return { ok: false as const, reason: "CURRENT_USER_MISSING" as const };
     }
+
+    const idTokenResult = await currentUser.getIdTokenResult();
+    const claims = idTokenResult.claims;
+    const accessToken = claims.twitch_access_token;
+    const id = claims.twitch_id;
+    const displayName = claims.twitch_display_name;
+    const loginName = claims.twitch_login_name;
+    const icon = claims.twitch_icon;
+
+    if (
+      typeof accessToken !== "string" ||
+      typeof id !== "string" ||
+      typeof displayName !== "string" ||
+      typeof loginName !== "string" ||
+      typeof icon !== "string"
+    ) {
+      return { ok: false as const, reason: "CLAIMS_MISSING" as const };
+    }
+
+    setBotUser({
+      accessToken,
+      id,
+      displayName,
+      loginName,
+      icon,
+    });
+    console.log("Twitch Login Name: ", loginName);
+    return { ok: true as const };
+  } catch (error) {
+    console.error("Error signing in with Twitch: ", error);
+    return { ok: false as const, reason: "SIGN_IN_FAILED" as const };
   }
-  return true;
 };
 
 export const wait = (ms: number) => {

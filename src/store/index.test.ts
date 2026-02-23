@@ -68,12 +68,6 @@ describe("store", () => {
     });
 
     useStore.getState().clearBotUser();
-    expect(useStore.getState().botUser).toEqual({
-      accessToken: "",
-      id: "",
-      displayName: "",
-      loginName: "",
-      icon: "",
-    });
+    expect(useStore.getState().botUser).toBeNull();
   });
 });

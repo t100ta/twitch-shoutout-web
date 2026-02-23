@@ -15,7 +15,7 @@ export const Login = () => {
     appToken,
     setAppToken: setToken,
     clearAppToken: clearToken,
-    botUser,
+    clearBotUser,
     setBotUser,
   } = useStore();
 
@@ -52,8 +52,8 @@ export const Login = () => {
     const token = appTokenFromParams || appToken;
     if (token) {
       (async () => {
-        try {
-          await signInWithTwitch(token, botUser, setBotUser);
+        const signInResult = await signInWithTwitch(token, setBotUser);
+        if (signInResult.ok) {
           setToken(token);
           window.history.replaceState(
             {},
@@ -61,11 +61,13 @@ export const Login = () => {
             window.location.pathname
           );
           navigate("/home");
-        } catch (error) {
-          console.error("Firebase login error:", error);
-          alert("ログインに失敗しました。");
-          clearToken();
+          return;
         }
+
+        console.error("Firebase login error:", signInResult.reason);
+        alert("ログインに失敗しました。");
+        clearToken();
+        clearBotUser();
       })();
     }
   }, [
@@ -74,7 +76,7 @@ export const Login = () => {
     appToken,
     setToken,
     clearToken,
-    botUser,
+    clearBotUser,
     setBotUser,
   ]);
 

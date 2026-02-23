@@ -43,64 +43,82 @@ export const useRaidListener = ({
   );
 
   useEffect(() => {
-    if (isTokenInvalid) {
-      return;
-    }
-    if (!targetLoginName) {
-      return;
-    }
-    if (
-      clientRef.current &&
-      shouldReuseClient(
-        clientRef.current.readyState(),
-        currentChannelRef.current,
-        targetLoginName
-      )
-    ) {
-      return;
-    }
-    if (clientRef.current) {
-      clientRef.current.disconnect();
-      clientRef.current = null;
-      currentChannelRef.current = null;
-    }
-    validate.mutate(accessToken, {
-      onError: () => {
-        setIsTokenInvalid(true);
-        onTokenInvalid();
-      },
-    });
-    clientRef.current = new Client({
-      connection: {
-        reconnect: true,
-        secure: true,
-      },
-      identity: {
-        username: botUserDisplayName,
-        password: `${accessToken}`,
-      },
-      channels: [targetLoginName],
-      options: { skipUpdatingEmotesets: true },
-    });
-    const client = clientRef.current;
-    currentChannelRef.current = targetLoginName;
-    client.connect().catch(console.error);
-    // タグ（msg-param-*, display-name など）を IRC で有効化
-    client.on("connected", (address, port) => {
-      client.raw(
-        "CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership"
-      );
-      handleConnected(address, port);
-    });
+    let isDisposed = false;
 
-    client.on("disconnected", handleDisconnected);
-    client.on("usernotice", handleUserNotice);
+    const setupClient = async () => {
+      if (isTokenInvalid) {
+        return;
+      }
+      if (!accessToken || !targetLoginName || !botUserDisplayName) {
+        return;
+      }
+      if (
+        clientRef.current &&
+        shouldReuseClient(
+          clientRef.current.readyState(),
+          currentChannelRef.current,
+          targetLoginName
+        )
+      ) {
+        return;
+      }
+      if (clientRef.current) {
+        clientRef.current.disconnect();
+        clientRef.current = null;
+        currentChannelRef.current = null;
+      }
+
+      try {
+        await validate.mutateAsync(accessToken);
+      } catch (error) {
+        console.error("Twitch token validation failed:", error);
+        if (!isDisposed) {
+          setIsTokenInvalid(true);
+          onTokenInvalid();
+        }
+        return;
+      }
+
+      if (isDisposed) {
+        return;
+      }
+
+      clientRef.current = new Client({
+        connection: {
+          reconnect: true,
+          secure: true,
+        },
+        identity: {
+          username: botUserDisplayName,
+          password: `${accessToken}`,
+        },
+        channels: [targetLoginName],
+        options: { skipUpdatingEmotesets: true },
+      });
+      const client = clientRef.current;
+      currentChannelRef.current = targetLoginName;
+      client.connect().catch(console.error);
+      // タグ（msg-param-*, display-name など）を IRC で有効化
+      client.on("connected", (address, port) => {
+        client.raw(
+          "CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership"
+        );
+        handleConnected(address, port);
+      });
+
+      client.on("disconnected", handleDisconnected);
+      client.on("usernotice", handleUserNotice);
+    };
+
+    setupClient();
 
     return () => {
-      if (client.readyState() === "OPEN") {
-        client.disconnect();
+      isDisposed = true;
+      if (clientRef.current?.readyState() === "OPEN") {
+        clientRef.current.disconnect();
       }
       clientRef.current = null;
+      currentChannelRef.current = null;
     };
   }, [
     accessToken,
