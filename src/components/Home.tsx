@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import useStore from "../store";
 import { replaceText } from "../utils";
@@ -56,14 +56,16 @@ export const Home = () => {
     };
   }, [userSettings, botUser?.displayName, botUser?.loginName, botUser?.id]);
 
+  const handleTokenInvalid = useCallback(() => {
+    clearAppToken();
+    clearBotUser();
+  }, [clearAppToken, clearBotUser]);
+
   const { clientRef, raiderLoginName, isTokenInvalid } = useRaidListener({
     accessToken: ACCESS_TOKEN,
     targetLoginName,
     botUserDisplayName: botUser?.displayName,
-    onTokenInvalid: () => {
-      clearAppToken();
-      clearBotUser();
-    },
+    onTokenInvalid: handleTokenInvalid,
   });
 
   const { data: raiderUsersData } = useQueryUsers(

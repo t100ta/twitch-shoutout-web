@@ -16,7 +16,7 @@ export const useRaidListener = ({
   botUserDisplayName,
   onTokenInvalid,
 }: Params) => {
-  const validate = useMutateValidation();
+  const { mutateAsync: validateToken } = useMutateValidation();
   const clientRef = useRef<Client | null>(null);
   const currentChannelRef = useRef<string | null>(null);
   const [isTokenInvalid, setIsTokenInvalid] = useState(false);
@@ -69,7 +69,7 @@ export const useRaidListener = ({
       }
 
       try {
-        await validate.mutateAsync(accessToken);
+        await validateToken(accessToken);
       } catch (error) {
         console.error("Twitch token validation failed:", error);
         if (
@@ -131,7 +131,7 @@ export const useRaidListener = ({
     accessToken,
     targetLoginName,
     botUserDisplayName,
-    validate,
+    validateToken,
     isTokenInvalid,
     onTokenInvalid,
     handleConnected,
