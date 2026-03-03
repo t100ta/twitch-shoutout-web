@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { getRaidInfo, shouldReuseClient } from "../utils/raidUtils";
+import {
+  getRaidInfo,
+  shouldReuseClient,
+  toIrcPassword,
+} from "../utils/raidUtils";
 
 describe("raidUtils", () => {
   it("getRaidInfo returns null when not raid", () => {
@@ -41,5 +45,13 @@ describe("raidUtils", () => {
     expect(shouldReuseClient("OPEN", "a", "a")).toBe(true);
     expect(shouldReuseClient("CLOSED", "a", "a")).toBe(false);
     expect(shouldReuseClient("OPEN", "a", "b")).toBe(false);
+  });
+
+  it("toIrcPassword adds oauth prefix when missing", () => {
+    expect(toIrcPassword("token")).toBe("oauth:token");
+  });
+
+  it("toIrcPassword keeps oauth prefix when already exists", () => {
+    expect(toIrcPassword("oauth:token")).toBe("oauth:token");
   });
 });

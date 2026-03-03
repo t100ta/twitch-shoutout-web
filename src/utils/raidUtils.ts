@@ -33,3 +33,10 @@ export const shouldReuseClient = (
   currentChannel: string | null,
   targetChannel: string
 ) => readyState === "OPEN" && currentChannel === targetChannel;
+
+export const toIrcPassword = (accessToken: string) => {
+  if (accessToken.startsWith("oauth:")) {
+    return accessToken;
+  }
+  return `oauth:${accessToken}`;
+};

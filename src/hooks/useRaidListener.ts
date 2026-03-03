@@ -1,19 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChatUserstate, Client } from "tmi.js";
 import { TOKEN_INVALID_ERROR, useMutateValidation } from "./useMutateValidation";
-import { getRaidInfo, shouldReuseClient } from "../utils/raidUtils";
+import { getRaidInfo, shouldReuseClient, toIrcPassword } from "../utils/raidUtils";
 
 type Params = {
   accessToken: string;
   targetLoginName: string;
-  botUserDisplayName?: string;
+  botUserLoginName?: string;
   onTokenInvalid: () => void;
 };
 
 export const useRaidListener = ({
   accessToken,
   targetLoginName,
-  botUserDisplayName,
+  botUserLoginName,
   onTokenInvalid,
 }: Params) => {
   const { mutateAsync: validateToken } = useMutateValidation();
@@ -49,7 +49,15 @@ export const useRaidListener = ({
       if (isTokenInvalid) {
         return;
       }
-      if (!accessToken || !targetLoginName || !botUserDisplayName) {
+      if (!accessToken || !targetLoginName || !botUserLoginName) {
+        console.warn(
+          "Skip Twitch chat connection because required credentials are missing.",
+          {
+            hasAccessToken: Boolean(accessToken),
+            hasTargetLoginName: Boolean(targetLoginName),
+            hasBotUserLoginName: Boolean(botUserLoginName),
+          }
+        );
         return;
       }
       if (
@@ -96,15 +104,19 @@ export const useRaidListener = ({
           secure: true,
         },
         identity: {
-          username: botUserDisplayName,
-          password: `${accessToken}`,
+          username: botUserLoginName.toLowerCase(),
+          password: toIrcPassword(accessToken),
         },
         channels: [targetLoginName],
         options: { skipUpdatingEmotesets: true },
       });
       const client = clientRef.current;
       currentChannelRef.current = targetLoginName;
-      client.connect().catch(console.error);
+      client
+        .connect()
+        .catch((error) =>
+          console.error("Failed to connect Twitch chat client:", error)
+        );
       // タグ（msg-param-*, display-name など）を IRC で有効化
       client.on("connected", (address, port) => {
         client.raw(
@@ -114,6 +126,9 @@ export const useRaidListener = ({
       });
 
       client.on("disconnected", handleDisconnected);
+      client.on("notice", (_channel, msgid, message) => {
+        console.warn("Twitch notice:", { msgid, message });
+      });
       client.on("usernotice", handleUserNotice);
     };
 
@@ -130,7 +145,7 @@ export const useRaidListener = ({
   }, [
     accessToken,
     targetLoginName,
-    botUserDisplayName,
+    botUserLoginName,
     validateToken,
     isTokenInvalid,
     onTokenInvalid,

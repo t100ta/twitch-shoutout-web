@@ -64,7 +64,7 @@ export const Home = () => {
   const { clientRef, raiderLoginName, isTokenInvalid } = useRaidListener({
     accessToken: ACCESS_TOKEN,
     targetLoginName,
-    botUserDisplayName: botUser?.displayName,
+    botUserLoginName: botUser?.loginName,
     onTokenInvalid: handleTokenInvalid,
   });
 
