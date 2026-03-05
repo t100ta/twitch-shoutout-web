@@ -1,8 +1,8 @@
-import { useEffect, type MutableRefObject } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef, type MutableRefObject } from "react";
 import { replaceText, wait } from "../utils";
 import { Channel, User } from "../types";
 import { useMutateShoutout } from "./useMutateShoutout";
+import { normalizeLoginName } from "../utils/raidUtils";
 
 type ShoutoutData = {
   users: User[];
@@ -14,6 +14,7 @@ type Params = {
     say: (channel: string, message: string) => void;
   } | null>;
   shoutoutData: ShoutoutData | null;
+  raidEventId: string;
   targetLoginName: string;
   shoutoutMessage: string;
   isShoutoutCommandExecute: boolean;
@@ -25,6 +26,7 @@ type Params = {
 export const useRaidShoutout = ({
   clientRef,
   shoutoutData,
+  raidEventId,
   targetLoginName,
   shoutoutMessage,
   isShoutoutCommandExecute,
@@ -32,22 +34,27 @@ export const useRaidShoutout = ({
   targetId,
   botUserId,
 }: Params) => {
-  const queryClient = useQueryClient();
+  const processedRaidEventIdRef = useRef("");
   const shoutoutCommandExecute = useMutateShoutout();
 
   useEffect(() => {
+    if (!raidEventId || processedRaidEventIdRef.current === raidEventId) {
+      return;
+    }
     if (!shoutoutData || !clientRef.current) {
       return;
     }
-    const { users, channels } = shoutoutData;
-    const user = users[0];
+    const normalizedTargetLoginName = normalizeLoginName(targetLoginName);
+    if (!normalizedTargetLoginName) {
+      console.warn("Skip chat post because target login name is empty.");
+      return;
+    }
+    const { channels } = shoutoutData;
     const channel = channels[0];
-    queryClient.invalidateQueries({
-      queryKey: ["channel", user.id],
-    });
+    processedRaidEventIdRef.current = raidEventId;
 
     clientRef.current?.say(
-      targetLoginName as string,
+      normalizedTargetLoginName,
       replaceText(shoutoutMessage as string, {
         displayName: channel.broadcaster_name,
         name: channel.broadcaster,
@@ -76,8 +83,8 @@ export const useRaidShoutout = ({
     }
   }, [
     shoutoutData,
+    raidEventId,
     clientRef,
-    queryClient,
     targetLoginName,
     shoutoutMessage,
     isShoutoutCommandExecute,

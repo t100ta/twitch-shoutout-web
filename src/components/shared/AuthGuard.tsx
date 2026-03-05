@@ -1,33 +1,34 @@
 import { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import { getAuth } from "firebase/auth";
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import useStore from "../../store";
-import { signInWithTwitch } from "../../utils";
+import { syncBotUserFromCurrentUser } from "../../utils";
 
 export const AuthGuard = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const {
-    appToken,
-    clearAppToken: clearToken,
-    clearBotUser,
-    setBotUser,
-  } = useStore();
+  const { clearBotUser, setBotUser } = useStore();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      if (!getAuth().currentUser && appToken) {
-        const signInResult = await signInWithTwitch(appToken, setBotUser);
-        if (!signInResult.ok) {
-          console.error("Cookie Login Error", signInResult.reason);
-          clearToken();
-          clearBotUser();
-        }
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        clearBotUser();
+        setIsLoading(false);
+        return;
       }
+
+      const syncResult = await syncBotUserFromCurrentUser(setBotUser);
+      if (!syncResult.ok) {
+        console.error("Auth restore error:", syncResult.reason);
+        clearBotUser();
+        await signOut(auth);
+      }
+
       setIsLoading(false);
-    };
-    checkAuth();
-  }, [appToken, clearToken, clearBotUser, setBotUser]);
+    });
+    return () => unsubscribe();
+  }, [clearBotUser, setBotUser]);
 
   useEffect(() => {
     if (!getAuth().currentUser && !isLoading) {

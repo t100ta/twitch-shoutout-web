@@ -1,7 +1,9 @@
+import axios from "axios";
 import { signInWithCustomToken } from "firebase/auth";
 import { auth } from "../firebase";
 import { ShoutoutProperties } from "../types";
 import type { BotUser } from "../store";
+import { AUTH_API_URI } from "../constants";
 
 type ShoutoutUser = {
   [key: string]: string;
@@ -34,15 +36,26 @@ export const replaceText = (text: string, data?: ShoutoutProperties) => {
 };
 
 export const signInWithTwitch = async (
-  appToken: string,
+  customToken: string,
   setBotUser: (user: BotUser) => void
 ) => {
-  if (!appToken) {
-    return { ok: false as const, reason: "APP_TOKEN_MISSING" as const };
+  if (!customToken) {
+    return { ok: false as const, reason: "CUSTOM_TOKEN_MISSING" as const };
   }
 
   try {
-    await signInWithCustomToken(auth, appToken);
+    await signInWithCustomToken(auth, customToken);
+    return await syncBotUserFromCurrentUser(setBotUser);
+  } catch (error) {
+    console.error("Error signing in with Twitch: ", error);
+    return { ok: false as const, reason: "SIGN_IN_FAILED" as const };
+  }
+};
+
+export const syncBotUserFromCurrentUser = async (
+  setBotUser: (user: BotUser) => void
+) => {
+  try {
     const currentUser = auth.currentUser;
     if (!currentUser) {
       return { ok: false as const, reason: "CURRENT_USER_MISSING" as const };
@@ -76,9 +89,20 @@ export const signInWithTwitch = async (
     console.log("Twitch Login Name: ", loginName);
     return { ok: true as const };
   } catch (error) {
-    console.error("Error signing in with Twitch: ", error);
-    return { ok: false as const, reason: "SIGN_IN_FAILED" as const };
+    console.error("Error reading Twitch claims: ", error);
+    return { ok: false as const, reason: "CLAIMS_READ_FAILED" as const };
   }
+};
+
+export const exchangeAuthCode = async (authCode: string) => {
+  if (!authCode) {
+    throw new Error("AUTH_CODE_MISSING");
+  }
+  const { data } = await axios.post(`${AUTH_API_URI}/exchange`, { authCode });
+  if (!data || typeof data.customToken !== "string") {
+    throw new Error("CUSTOM_TOKEN_MISSING");
+  }
+  return data.customToken as string;
 };
 
 export const wait = (ms: number) => {

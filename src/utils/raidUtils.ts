@@ -25,7 +25,7 @@ export const getRaidInfo = (
     return null;
   }
   const displayName = tags[RAID_TAGS.displayName] || login;
-  return { channel, login, displayName };
+  return { channel, login: normalizeLoginName(login), displayName };
 };
 
 export const shouldReuseClient = (
@@ -40,3 +40,6 @@ export const toIrcPassword = (accessToken: string) => {
   }
   return `oauth:${accessToken}`;
 };
+
+export const normalizeLoginName = (loginName: string) =>
+  loginName.trim().replace(/^#/, "").toLowerCase();

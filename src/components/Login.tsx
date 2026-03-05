@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { getAuth } from "firebase/auth";
 import { AUTH_API_URI } from "../constants";
 import useStore from "../store";
 import { Contact } from "./shared/Contact";
-import { signInWithTwitch } from "../utils";
+import { exchangeAuthCode, signInWithTwitch } from "../utils";
 import logo from "../assets/logo.png";
 import { logoStyle } from "./Logo.css";
 
@@ -11,13 +12,7 @@ export const Login = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [authErrorMessage, setAuthErrorMessage] = useState("");
-  const {
-    appToken,
-    setAppToken: setToken,
-    clearAppToken: clearToken,
-    clearBotUser,
-    setBotUser,
-  } = useStore();
+  const { clearBotUser, setBotUser } = useStore();
 
   const authErrorText = useMemo(() => {
     const authError = searchParams.get("auth_error");
@@ -48,37 +43,56 @@ export const Login = () => {
   }, [authErrorText]);
 
   useEffect(() => {
-    const appTokenFromParams = searchParams.get("app_token");
-    const token = appTokenFromParams || appToken;
-    if (token) {
+    const authCode = searchParams.get("auth_code");
+    if (authCode) {
       (async () => {
-        const signInResult = await signInWithTwitch(token, setBotUser);
-        if (signInResult.ok) {
-          setToken(token);
-          window.history.replaceState(
-            {},
-            document.title,
-            window.location.pathname
-          );
-          navigate("/home");
-          return;
+        try {
+          const customToken = await exchangeAuthCode(authCode);
+          const signInResult = await signInWithTwitch(customToken, setBotUser);
+          if (signInResult.ok) {
+            window.history.replaceState(
+              {},
+              document.title,
+              window.location.pathname
+            );
+            navigate("/home");
+            return;
+          }
+
+          console.error("Firebase login error:", signInResult.reason);
+        } catch (error) {
+          console.error("Auth code exchange failed:", error);
         }
 
-        console.error("Firebase login error:", signInResult.reason);
         alert("ログインに失敗しました。");
-        clearToken();
         clearBotUser();
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname
+        );
       })();
     }
-  }, [
-    searchParams,
-    navigate,
-    appToken,
-    setToken,
-    clearToken,
-    clearBotUser,
-    setBotUser,
-  ]);
+  }, [searchParams, navigate, clearBotUser, setBotUser]);
+
+  useEffect(() => {
+    if (authErrorText) {
+      return;
+    }
+    (async () => {
+      const currentUser = getAuth().currentUser;
+      if (!currentUser) {
+        return;
+      }
+      const idTokenResult = await currentUser.getIdTokenResult();
+      const claims = idTokenResult.claims;
+      if (claims?.twitch_id) {
+        navigate("/home");
+      }
+    })().catch((error) => {
+      console.error("Auto login check failed:", error);
+    });
+  }, [authErrorText, navigate]);
 
   const handleLoginWithTwitch = () =>
     (window.location.href = `${AUTH_API_URI}/authWithTwitch`);

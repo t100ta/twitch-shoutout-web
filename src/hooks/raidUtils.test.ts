@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   getRaidInfo,
+  normalizeLoginName,
   shouldReuseClient,
   toIrcPassword,
 } from "../utils/raidUtils";
@@ -41,6 +42,19 @@ describe("raidUtils", () => {
     });
   });
 
+  it("getRaidInfo normalizes raider login", () => {
+    const result = getRaidInfo("channel", {
+      "msg-id": "raid",
+      "msg-param-login": "#Raider",
+      "msg-param-displayName": "Raider Name",
+    });
+    expect(result).toEqual({
+      channel: "channel",
+      login: "raider",
+      displayName: "Raider Name",
+    });
+  });
+
   it("shouldReuseClient returns true only when open and same channel", () => {
     expect(shouldReuseClient("OPEN", "a", "a")).toBe(true);
     expect(shouldReuseClient("CLOSED", "a", "a")).toBe(false);
@@ -53,5 +67,9 @@ describe("raidUtils", () => {
 
   it("toIrcPassword keeps oauth prefix when already exists", () => {
     expect(toIrcPassword("oauth:token")).toBe("oauth:token");
+  });
+
+  it("normalizeLoginName removes hash and lowercases", () => {
+    expect(normalizeLoginName(" #Tom_T100TA ")).toBe("tom_t100ta");
   });
 });

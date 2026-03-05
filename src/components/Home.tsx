@@ -19,7 +19,7 @@ import {
 
 export const Home = () => {
   const navigate = useNavigate();
-  const { botUser, clearAppToken, clearBotUser } = useStore();
+  const { botUser, clearBotUser } = useStore();
   const ACCESS_TOKEN = botUser?.accessToken as string;
   const { hasMultipleSessions } = useBrowserSessionWarning(
     (botUser?.id as string) || ""
@@ -57,11 +57,10 @@ export const Home = () => {
   }, [userSettings, botUser?.displayName, botUser?.loginName, botUser?.id]);
 
   const handleTokenInvalid = useCallback(() => {
-    clearAppToken();
     clearBotUser();
-  }, [clearAppToken, clearBotUser]);
+  }, [clearBotUser]);
 
-  const { clientRef, raiderLoginName, isTokenInvalid } = useRaidListener({
+  const { clientRef, raiderLoginName, raidEventId, isTokenInvalid } = useRaidListener({
     accessToken: ACCESS_TOKEN,
     targetLoginName,
     botUserLoginName: botUser?.loginName,
@@ -91,6 +90,7 @@ export const Home = () => {
   useRaidShoutout({
     clientRef,
     shoutoutData,
+    raidEventId,
     targetLoginName,
     shoutoutMessage,
     isShoutoutCommandExecute,

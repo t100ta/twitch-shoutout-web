@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChatUserstate, Client } from "tmi.js";
 import { TOKEN_INVALID_ERROR, useMutateValidation } from "./useMutateValidation";
-import { getRaidInfo, shouldReuseClient, toIrcPassword } from "../utils/raidUtils";
+import {
+  getRaidInfo,
+  normalizeLoginName,
+  shouldReuseClient,
+  toIrcPassword,
+} from "../utils/raidUtils";
 
 type Params = {
   accessToken: string;
@@ -19,8 +24,32 @@ export const useRaidListener = ({
   const { mutateAsync: validateToken } = useMutateValidation();
   const clientRef = useRef<Client | null>(null);
   const currentChannelRef = useRef<string | null>(null);
+  const lastRaidRef = useRef<{ loginName: string; detectedAt: number } | null>(
+    null
+  );
   const [isTokenInvalid, setIsTokenInvalid] = useState(false);
   const [raiderLoginName, setRaiderLoginName] = useState("");
+  const [raidEventId, setRaidEventId] = useState("");
+
+  const emitRaid = useCallback((channel: string, loginName: string) => {
+    const normalizedLogin = normalizeLoginName(loginName);
+    const now = Date.now();
+    const lastRaid = lastRaidRef.current;
+    if (
+      lastRaid &&
+      lastRaid.loginName === normalizedLogin &&
+      now - lastRaid.detectedAt < 30 * 1000
+    ) {
+      console.log("Skip duplicate raid event.", {
+        channel,
+        loginName: normalizedLogin,
+      });
+      return;
+    }
+    lastRaidRef.current = { loginName: normalizedLogin, detectedAt: now };
+    setRaiderLoginName(normalizedLogin);
+    setRaidEventId(`${normalizedLogin}:${now}`);
+  }, []);
 
   const handleConnected = useCallback((address: string, port: number) => {
     console.log(`Connected! : ${address}:${port}`);
@@ -32,30 +61,54 @@ export const useRaidListener = ({
     (channel: string, tags: ChatUserstate) => {
       const raidInfo = getRaidInfo(channel, tags);
       if (!raidInfo) {
+        if (tags["msg-id"] === "raid") {
+          console.warn('Received raid usernotice but failed to parse login.', {
+            channel,
+            tags,
+          });
+        }
         return;
       }
       console.log(
         `Detected "raided"\nchannel: ${raidInfo.channel}\nusername: ${raidInfo.displayName}\nloginName: ${raidInfo.login}`
       );
-      setRaiderLoginName(raidInfo.login);
+      emitRaid(raidInfo.channel, raidInfo.login);
     },
-    []
+    [emitRaid]
+  );
+  const handleRaided = useCallback(
+    (channel: string, username: string, viewers: number) => {
+      const loginName = normalizeLoginName(username);
+      console.log(
+        `Detected "raided" event\nchannel: ${channel}\nloginName: ${loginName}\nviewers: ${viewers}`
+      );
+      emitRaid(channel, loginName);
+    },
+    [emitRaid]
   );
 
   useEffect(() => {
     let isDisposed = false;
+    const normalizedTargetLoginName = normalizeLoginName(targetLoginName);
+    const normalizedBotUserLoginName = botUserLoginName
+      ? normalizeLoginName(botUserLoginName)
+      : "";
 
     const setupClient = async () => {
       if (isTokenInvalid) {
         return;
       }
-      if (!accessToken || !targetLoginName || !botUserLoginName) {
+      if (
+        !accessToken ||
+        !normalizedTargetLoginName ||
+        !normalizedBotUserLoginName
+      ) {
         console.warn(
           "Skip Twitch chat connection because required credentials are missing.",
           {
             hasAccessToken: Boolean(accessToken),
-            hasTargetLoginName: Boolean(targetLoginName),
-            hasBotUserLoginName: Boolean(botUserLoginName),
+            hasTargetLoginName: Boolean(normalizedTargetLoginName),
+            hasBotUserLoginName: Boolean(normalizedBotUserLoginName),
           }
         );
         return;
@@ -65,7 +118,7 @@ export const useRaidListener = ({
         shouldReuseClient(
           clientRef.current.readyState(),
           currentChannelRef.current,
-          targetLoginName
+          normalizedTargetLoginName
         )
       ) {
         return;
@@ -104,14 +157,14 @@ export const useRaidListener = ({
           secure: true,
         },
         identity: {
-          username: botUserLoginName.toLowerCase(),
+          username: normalizedBotUserLoginName,
           password: toIrcPassword(accessToken),
         },
-        channels: [targetLoginName],
+        channels: [normalizedTargetLoginName],
         options: { skipUpdatingEmotesets: true },
       });
       const client = clientRef.current;
-      currentChannelRef.current = targetLoginName;
+      currentChannelRef.current = normalizedTargetLoginName;
       client
         .connect()
         .catch((error) =>
@@ -126,10 +179,16 @@ export const useRaidListener = ({
       });
 
       client.on("disconnected", handleDisconnected);
+      client.on("join", (channel, username, self) => {
+        if (self) {
+          console.log("Joined channel:", { channel, username });
+        }
+      });
       client.on("notice", (_channel, msgid, message) => {
         console.warn("Twitch notice:", { msgid, message });
       });
       client.on("usernotice", handleUserNotice);
+      client.on("raided", handleRaided);
     };
 
     setupClient();
@@ -152,7 +211,8 @@ export const useRaidListener = ({
     handleConnected,
     handleDisconnected,
     handleUserNotice,
+    handleRaided,
   ]);
 
-  return { clientRef, raiderLoginName, isTokenInvalid };
+  return { clientRef, raiderLoginName, raidEventId, isTokenInvalid };
 };

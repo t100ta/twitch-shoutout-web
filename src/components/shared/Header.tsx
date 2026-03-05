@@ -7,10 +7,9 @@ import { header, headerLogo } from "./Header.css";
 
 export const Header = () => {
   const navigate = useNavigate();
-  const { clearAppToken: clearToken, clearBotUser } = useStore();
+  const { clearBotUser } = useStore();
 
   const handleLogout = async () => {
-    clearToken();
     clearBotUser();
     await signOut(auth);
     await navigate("/");

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mockSignInWithCustomToken = vi.hoisted(() => vi.fn());
 const mockGetIdTokenResult = vi.hoisted(() => vi.fn());
+const axiosPostMock = vi.hoisted(() => vi.fn());
 const mockAuth: { currentUser: any } = vi.hoisted(() => ({
   currentUser: {
     getIdTokenResult: mockGetIdTokenResult,
@@ -16,7 +17,23 @@ vi.mock("firebase/auth", () => ({
   signInWithCustomToken: mockSignInWithCustomToken,
 }));
 
-import { replaceText, wait, signInWithTwitch } from "./index";
+vi.mock("axios", () => ({
+  default: {
+    post: axiosPostMock,
+  },
+}));
+
+vi.mock("../constants", () => ({
+  AUTH_API_URI: "https://auth.example.com",
+}));
+
+import {
+  exchangeAuthCode,
+  replaceText,
+  signInWithTwitch,
+  syncBotUserFromCurrentUser,
+  wait,
+} from "./index";
 describe("replaceText", () => {
   it("replaces placeholders with default labels when data is missing", () => {
     const result = replaceText(
@@ -64,15 +81,16 @@ describe("signInWithTwitch", () => {
   beforeEach(() => {
     mockSignInWithCustomToken.mockReset();
     mockGetIdTokenResult.mockReset();
+    axiosPostMock.mockReset();
     mockAuth.currentUser = {
       getIdTokenResult: mockGetIdTokenResult,
     };
   });
 
-  it("returns false when appToken is empty", async () => {
+  it("returns false when custom token is empty", async () => {
     const setBotUser = vi.fn();
     const result = await signInWithTwitch("", setBotUser);
-    expect(result).toEqual({ ok: false, reason: "APP_TOKEN_MISSING" });
+    expect(result).toEqual({ ok: false, reason: "CUSTOM_TOKEN_MISSING" });
     expect(setBotUser).not.toHaveBeenCalled();
   });
 
@@ -141,5 +159,41 @@ describe("signInWithTwitch", () => {
 
     expect(result).toEqual({ ok: false, reason: "CLAIMS_MISSING" });
     expect(setBotUser).not.toHaveBeenCalled();
+  });
+});
+
+describe("syncBotUserFromCurrentUser", () => {
+  beforeEach(() => {
+    mockGetIdTokenResult.mockReset();
+    mockAuth.currentUser = {
+      getIdTokenResult: mockGetIdTokenResult,
+    };
+  });
+
+  it("returns failure when currentUser is missing", async () => {
+    mockAuth.currentUser = null;
+    const setBotUser = vi.fn();
+    const result = await syncBotUserFromCurrentUser(setBotUser);
+    expect(result).toEqual({ ok: false, reason: "CURRENT_USER_MISSING" });
+    expect(setBotUser).not.toHaveBeenCalled();
+  });
+});
+
+describe("exchangeAuthCode", () => {
+  beforeEach(() => {
+    axiosPostMock.mockReset();
+  });
+
+  it("calls exchange endpoint and returns custom token", async () => {
+    axiosPostMock.mockResolvedValue({ data: { customToken: "firebase-token" } });
+    await expect(exchangeAuthCode("auth-code")).resolves.toBe("firebase-token");
+    expect(axiosPostMock).toHaveBeenCalledWith(
+      "https://auth.example.com/exchange",
+      { authCode: "auth-code" }
+    );
+  });
+
+  it("throws when auth code is missing", async () => {
+    await expect(exchangeAuthCode("")).rejects.toThrow("AUTH_CODE_MISSING");
   });
 });

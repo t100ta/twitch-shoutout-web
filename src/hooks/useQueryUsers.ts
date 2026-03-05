@@ -30,7 +30,7 @@ export const useQueryUsers = (token: string, loginName: string) => {
     }
   };
   return useQuery<User[]>({
-    queryKey: ["users", loginName, token],
+    queryKey: ["users", loginName],
     queryFn: getUsers,
     enabled: !!loginName,
     staleTime: 1000 * 60 * 5,
