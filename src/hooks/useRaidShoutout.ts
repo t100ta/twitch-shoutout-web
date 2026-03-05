@@ -49,15 +49,26 @@ export const useRaidShoutout = ({
       console.warn("Skip chat post because target login name is empty.");
       return;
     }
-    const { channels } = shoutoutData;
+    const { users, channels } = shoutoutData;
+    const user = users[0];
     const channel = channels[0];
     processedRaidEventIdRef.current = raidEventId;
+    const loginNameForMessage = normalizeLoginName(
+      channel.broadcaster_login || user?.login || channel.broadcaster || ""
+    );
+    if (!loginNameForMessage) {
+      console.warn(
+        "Could not resolve raider login name for message placeholders."
+      );
+    }
+    const displayNameForMessage =
+      channel.broadcaster_name || user?.display_name || user?.login || "(おなまえ)";
 
     clientRef.current?.say(
       normalizedTargetLoginName,
       replaceText(shoutoutMessage as string, {
-        displayName: channel.broadcaster_name,
-        name: channel.broadcaster,
+        displayName: displayNameForMessage,
+        name: loginNameForMessage || "(ユーザーID)",
         game: channel.game_name,
         title: channel.title,
       })

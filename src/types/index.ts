@@ -21,7 +21,8 @@ export type User = {
 
 export type Channel = {
   broadcaster_id: string;
-  broadcaster: string;
+  broadcaster_login?: string;
+  broadcaster?: string;
   broadcaster_name: string;
   broadcaster_language: string;
   game_id: string;

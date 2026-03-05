@@ -40,7 +40,7 @@ describe("replaceText", () => {
       "Hello $displayname $loginname $category $title"
     );
     expect(result).toBe(
-      "Hello (おなまえ) (URL) (カテゴリ) (配信タイトル)"
+      "Hello (おなまえ) (ユーザーID) (カテゴリ) (配信タイトル)"
     );
   });
 

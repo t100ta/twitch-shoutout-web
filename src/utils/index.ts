@@ -12,7 +12,7 @@ export const replaceText = (text: string, data?: ShoutoutProperties) => {
   if (!data) {
     data = {
       displayName: "(おなまえ)",
-      name: "(URL)",
+      name: "(ユーザーID)",
       game: "(カテゴリ)",
       title: "(配信タイトル)",
     };
