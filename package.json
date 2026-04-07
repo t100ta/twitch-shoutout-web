@@ -55,7 +55,7 @@
   "packageManager": "pnpm@10.11.0",
   "pnpm": {
     "overrides": {
-      "@tootallnate/once@npm:2": "3.0.1",
+      "@tootallnate/once": "3.0.1",
       "form-data@^2.5.0": "2.5.4",
       "form-data@^4.0.0": "4.0.5",
       "fast-xml-parser@^4.4.1": "5.5.7",
