@@ -1,2 +1,33 @@
 [tools]
 node = "24.13.1"
+pnpm = "10.11.0"
+
+[tasks.dev]
+run = "pnpm run dev"
+
+[tasks.build]
+run = "pnpm run build"
+
+[tasks."build:dev"]
+run = "pnpm run build:dev"
+
+[tasks."serve:dev"]
+run = "pnpm run serve:dev"
+
+[tasks.lint]
+run = "pnpm run lint"
+
+[tasks.test]
+run = "pnpm run test"
+
+[tasks."test:watch"]
+run = "pnpm run test:watch"
+
+[tasks."test:coverage"]
+run = "pnpm run test:coverage"
+
+[tasks.preview]
+run = "pnpm run preview"
+
+[tasks.deploy]
+run = "pnpm run deploy"

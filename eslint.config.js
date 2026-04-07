@@ -11,10 +11,9 @@ export default [
   {
     ignores: [
       "dist",
+      "coverage",
       "node_modules",
-      ".yarn",
-      ".pnp.cjs",
-      ".pnp.loader.mjs",
+      "pnpm-debug.log*",
       "eslint.config.js",
       "vite.config.js",
       "src/types/tmi.js/**",

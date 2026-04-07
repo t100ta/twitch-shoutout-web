@@ -22,11 +22,7 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
 
-    "typeRoots": [
-      "./.yarn/__virtual__/@types/*",
-      "./node_modules/@types",
-      "./src/types"
-    ]
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
   "include": ["src", "src/types"]
 }
