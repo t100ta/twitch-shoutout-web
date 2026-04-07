@@ -53,6 +53,44 @@ import {
   TOKEN_INVALID_ERROR,
   VALIDATION_FAILED_ERROR,
 } from "./useMutateValidation";
+import type { Channel, UserSettings } from "../types";
+
+type QueryCapture<TData> = {
+  queryKey: string[];
+  enabled: boolean;
+  queryFn: () => Promise<TData | null>;
+};
+
+type ValidationMutationCapture = {
+  mutationFn: (oauthToken: string) => Promise<unknown>;
+};
+
+type ShoutoutPayload = {
+  token: string;
+  fromBroadcasterId: string;
+  toBroadcasterId: string;
+  moderatorId: string;
+};
+
+type ShoutoutMutationCapture = {
+  mutationFn: (payload: ShoutoutPayload) => Promise<unknown>;
+};
+
+type SettingsPayload = {
+  twitchId: string;
+  data: UserSettings;
+};
+
+type SettingsMutationCapture = {
+  mutationFn: (payload: SettingsPayload) => Promise<SettingsPayload>;
+  onError: (error: unknown) => void;
+  onSuccess: (payload: SettingsPayload) => void;
+};
+
+const expectCaptured = <T,>(captured: T | undefined): T => {
+  expect(captured).toBeDefined();
+  return captured as T;
+};
 
 describe("hooks", () => {
   beforeEach(() => {
@@ -69,146 +107,155 @@ describe("hooks", () => {
   });
 
   it("useQueryUsers does not include token in queryKey", () => {
-    let captured: any;
+    let captured: QueryCapture<{ id: string }[]> | undefined;
     useQueryMock.mockImplementation((options) => {
       captured = options;
       return { data: null };
     });
 
     useQueryUsers("token-a", "login");
-    expect(captured.queryKey).toEqual(["users", "login"]);
-    expect(captured.enabled).toBe(true);
+    const query = expectCaptured(captured);
+    expect(query.queryKey).toEqual(["users", "login"]);
+    expect(query.enabled).toBe(true);
   });
 
   it("useQueryUsers queryFn returns data or null", async () => {
-    let captured: any;
+    let captured: QueryCapture<{ id: string }[]> | undefined;
     useQueryMock.mockImplementation((options) => {
       captured = options;
       return { data: null };
     });
 
     useQueryUsers("token-a", "login");
+    const query = expectCaptured(captured);
     axiosGetMock.mockResolvedValue({ data: { data: [{ id: "1" }] } });
-    await expect(captured.queryFn()).resolves.toEqual([{ id: "1" }]);
+    await expect(query.queryFn()).resolves.toEqual([{ id: "1" }]);
 
     axiosGetMock.mockResolvedValue({ data: { data: [] } });
-    await expect(captured.queryFn()).resolves.toBeNull();
+    await expect(query.queryFn()).resolves.toBeNull();
   });
 
   it("useQueryUsers queryFn throws on axios error", async () => {
-    let captured: any;
+    let captured: QueryCapture<{ id: string }[]> | undefined;
     useQueryMock.mockImplementation((options) => {
       captured = options;
       return { data: null };
     });
     useQueryUsers("token-a", "login");
+    const query = expectCaptured(captured);
 
     isAxiosErrorMock.mockReturnValue(true);
     axiosGetMock.mockRejectedValue({ response: { status: 500 }, message: "x" });
 
-    await expect(captured.queryFn()).rejects.toThrow("Twitch API error: 500");
+    await expect(query.queryFn()).rejects.toThrow("Twitch API error: 500");
   });
 
   it("useQueryUsers queryFn throws on unexpected error", async () => {
-    let captured: any;
+    let captured: QueryCapture<{ id: string }[]> | undefined;
     useQueryMock.mockImplementation((options) => {
       captured = options;
       return { data: null };
     });
     useQueryUsers("token-a", "login");
+    const query = expectCaptured(captured);
 
     isAxiosErrorMock.mockReturnValue(false);
     axiosGetMock.mockRejectedValue(new Error("boom"));
 
-    await expect(captured.queryFn()).rejects.toThrow(
+    await expect(query.queryFn()).rejects.toThrow(
       "An unexpected error occurred"
     );
   });
 
   it("useQueryChannels does not include token in queryKey", () => {
-    let captured: any;
+    let captured: QueryCapture<Channel[]> | undefined;
     useQueryMock.mockImplementation((options) => {
       captured = options;
       return { data: null };
     });
 
     useQueryChannels("token-b", "broadcaster-id");
-    expect(captured.queryKey).toEqual(["channels", "broadcaster-id"]);
-    expect(captured.enabled).toBe(true);
+    const query = expectCaptured(captured);
+    expect(query.queryKey).toEqual(["channels", "broadcaster-id"]);
+    expect(query.enabled).toBe(true);
   });
 
   it("useQueryChannels queryFn returns data or null", async () => {
-    let captured: any;
+    let captured: QueryCapture<{ id: string }[]> | undefined;
     useQueryMock.mockImplementation((options) => {
       captured = options;
       return { data: null };
     });
 
     useQueryChannels("token-b", "broadcaster-id");
+    const query = expectCaptured(captured);
     axiosGetMock.mockResolvedValue({ data: { data: [{ id: "1" }] } });
-    await expect(captured.queryFn()).resolves.toEqual([{ id: "1" }]);
+    await expect(query.queryFn()).resolves.toEqual([{ id: "1" }]);
 
     axiosGetMock.mockResolvedValue({ data: { data: [] } });
-    await expect(captured.queryFn()).resolves.toBeNull();
+    await expect(query.queryFn()).resolves.toBeNull();
   });
 
   it("useQueryChannels queryFn throws on axios error", async () => {
-    let captured: any;
+    let captured: QueryCapture<Channel[]> | undefined;
     useQueryMock.mockImplementation((options) => {
       captured = options;
       return { data: null };
     });
     useQueryChannels("token-b", "broadcaster-id");
+    const query = expectCaptured(captured);
 
     isAxiosErrorMock.mockReturnValue(true);
     axiosGetMock.mockRejectedValue({ response: { status: 401 }, message: "x" });
 
-    await expect(captured.queryFn()).rejects.toThrow("Twitch API error: 401");
+    await expect(query.queryFn()).rejects.toThrow("Twitch API error: 401");
   });
 
   it("useQueryChannels queryFn throws on unexpected error", async () => {
-    let captured: any;
+    let captured: QueryCapture<Channel[]> | undefined;
     useQueryMock.mockImplementation((options) => {
       captured = options;
       return { data: null };
     });
     useQueryChannels("token-b", "broadcaster-id");
+    const query = expectCaptured(captured);
 
     isAxiosErrorMock.mockReturnValue(false);
     axiosGetMock.mockRejectedValue(new Error("boom"));
 
-    await expect(captured.queryFn()).rejects.toThrow(
+    await expect(query.queryFn()).rejects.toThrow(
       "An unexpected error occurred"
     );
   });
 
   it("useQuerySettings sets enabled by twitchId", () => {
-    let captured: any;
+    let captured: QueryCapture<UserSettings> | undefined;
     useQueryMock.mockImplementation((options) => {
       captured = options;
       return { data: null };
     });
 
     useQuerySettings("");
-    expect(captured.enabled).toBe(false);
+    expect(expectCaptured(captured).enabled).toBe(false);
 
     useQuerySettings("twitch-id");
-    expect(captured.enabled).toBe(true);
+    expect(expectCaptured(captured).enabled).toBe(true);
   });
 
   it("useQuerySettings queryFn returns settings or null", async () => {
-    let captured: any;
+    let captured: QueryCapture<UserSettings> | undefined;
     useQueryMock.mockImplementation((options) => {
       captured = options;
       return { data: null };
     });
     useQuerySettings("twitch-id");
+    const query = expectCaptured(captured);
 
     getDocMock.mockResolvedValue({
       exists: () => true,
       data: () => ({ shoutoutMessage: "msg" }),
     });
-    await expect(captured.queryFn()).resolves.toEqual({
+    await expect(query.queryFn()).resolves.toEqual({
       shoutoutMessage: "msg",
     });
 
@@ -216,14 +263,19 @@ describe("hooks", () => {
       exists: () => false,
       data: () => null,
     });
-    await expect(captured.queryFn()).resolves.toBeNull();
+    await expect(query.queryFn()).resolves.toBeNull();
   });
 
   it("useMutateValidation calls validate endpoint with token", async () => {
-    useMutationMock.mockImplementation(({ mutationFn }) => ({ mutationFn }));
+    let captured: ValidationMutationCapture | undefined;
+    useMutationMock.mockImplementation(({ mutationFn }) => {
+      captured = { mutationFn };
+      return { mutationFn };
+    });
     axiosGetMock.mockResolvedValue({ data: {}, status: 200 });
 
-    const { mutationFn } = useMutateValidation() as any;
+    useMutateValidation();
+    const { mutationFn } = expectCaptured(captured);
     await mutationFn("oauth-token");
 
     expect(axiosGetMock).toHaveBeenCalledWith(
@@ -237,29 +289,44 @@ describe("hooks", () => {
   });
 
   it("useMutateValidation throws on non-200 status", async () => {
-    useMutationMock.mockImplementation(({ mutationFn }) => ({ mutationFn }));
+    let captured: ValidationMutationCapture | undefined;
+    useMutationMock.mockImplementation(({ mutationFn }) => {
+      captured = { mutationFn };
+      return { mutationFn };
+    });
     axiosGetMock.mockResolvedValue({ data: {}, status: 500 });
 
-    const { mutationFn } = useMutateValidation() as any;
+    useMutateValidation();
+    const { mutationFn } = expectCaptured(captured);
     await expect(mutationFn("oauth-token")).rejects.toThrow(
       VALIDATION_FAILED_ERROR
     );
   });
 
   it("useMutateValidation throws on axios error", async () => {
-    useMutationMock.mockImplementation(({ mutationFn }) => ({ mutationFn }));
+    let captured: ValidationMutationCapture | undefined;
+    useMutationMock.mockImplementation(({ mutationFn }) => {
+      captured = { mutationFn };
+      return { mutationFn };
+    });
     isAxiosErrorMock.mockReturnValue(true);
     axiosGetMock.mockRejectedValue({ response: { status: 401, data: "bad" } });
 
-    const { mutationFn } = useMutateValidation() as any;
+    useMutateValidation();
+    const { mutationFn } = expectCaptured(captured);
     await expect(mutationFn("oauth-token")).rejects.toThrow(TOKEN_INVALID_ERROR);
   });
 
   it("useMutateShoutout posts to twitch API", async () => {
-    useMutationMock.mockImplementation(({ mutationFn }) => ({ mutationFn }));
+    let captured: ShoutoutMutationCapture | undefined;
+    useMutationMock.mockImplementation(({ mutationFn }) => {
+      captured = { mutationFn };
+      return { mutationFn };
+    });
     axiosPostMock.mockResolvedValue({ data: {} });
 
-    const { mutationFn } = useMutateShoutout() as any;
+    useMutateShoutout();
+    const { mutationFn } = expectCaptured(captured);
     await mutationFn({
       token: "token",
       fromBroadcasterId: "from",
@@ -285,11 +352,16 @@ describe("hooks", () => {
   });
 
   it("useMutateShoutout throws on axios error", async () => {
-    useMutationMock.mockImplementation(({ mutationFn }) => ({ mutationFn }));
+    let captured: ShoutoutMutationCapture | undefined;
+    useMutationMock.mockImplementation(({ mutationFn }) => {
+      captured = { mutationFn };
+      return { mutationFn };
+    });
     isAxiosErrorMock.mockReturnValue(true);
     axiosPostMock.mockRejectedValue({ response: { data: "bad" } });
 
-    const { mutationFn } = useMutateShoutout() as any;
+    useMutateShoutout();
+    const { mutationFn } = expectCaptured(captured);
     await expect(
       mutationFn({
         token: "token",
@@ -301,11 +373,16 @@ describe("hooks", () => {
   });
 
   it("useMutateShoutout throws on unexpected error", async () => {
-    useMutationMock.mockImplementation(({ mutationFn }) => ({ mutationFn }));
+    let captured: ShoutoutMutationCapture | undefined;
+    useMutationMock.mockImplementation(({ mutationFn }) => {
+      captured = { mutationFn };
+      return { mutationFn };
+    });
     isAxiosErrorMock.mockReturnValue(false);
     axiosPostMock.mockRejectedValue(new Error("boom"));
 
-    const { mutationFn } = useMutateShoutout() as any;
+    useMutateShoutout();
+    const { mutationFn } = expectCaptured(captured);
     await expect(
       mutationFn({
         token: "token",
@@ -317,7 +394,15 @@ describe("hooks", () => {
   });
 
   it("useMutateSettings writes settings to firestore", async () => {
-    useMutationMock.mockImplementation(({ mutationFn }) => ({ mutationFn }));
+    let captured: SettingsMutationCapture | undefined;
+    useMutationMock.mockImplementation((options) => {
+      captured = {
+        mutationFn: options.mutationFn,
+        onError: options.onError ?? (() => {}),
+        onSuccess: options.onSuccess ?? (() => {}),
+      };
+      return options;
+    });
     const setQueryDataMock = vi.fn();
     const getQueryDataMock = vi.fn().mockReturnValue({ ok: true });
     useQueryClientMock.mockReturnValue({
@@ -330,8 +415,9 @@ describe("hooks", () => {
     collectionMock.mockReturnValue(settingsRef);
     docMock.mockReturnValue(docRef);
 
-    const { mutationFn } = useMutateSettings() as any;
-    const payload = {
+    useMutateSettings();
+    const { mutationFn } = expectCaptured(captured);
+    const payload: SettingsPayload = {
       twitchId: "123",
       data: {
         targetChannelDisplayName: "name",
@@ -349,17 +435,21 @@ describe("hooks", () => {
   it("useMutateSettings logs errors in onError", () => {
     const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
-    let captured: any;
+    let captured: SettingsMutationCapture | undefined;
     useMutationMock.mockImplementation((options) => {
-      captured = options;
+      captured = {
+        mutationFn: options.mutationFn,
+        onError: options.onError ?? (() => {}),
+        onSuccess: options.onSuccess ?? (() => {}),
+      };
       return options;
     });
     useMutateSettings();
 
-    captured.onError(new Error("boom"));
+    expectCaptured(captured).onError(new Error("boom"));
     expect(consoleSpy).toHaveBeenCalledWith("boom");
 
-    captured.onError("raw-error");
+    expectCaptured(captured).onError("raw-error");
     expect(consoleSpy).toHaveBeenCalledWith("raw-error");
 
     consoleSpy.mockRestore();
@@ -373,14 +463,18 @@ describe("hooks", () => {
       setQueryData: setQueryDataMock,
     });
 
-    let captured: any;
+    let captured: SettingsMutationCapture | undefined;
     useMutationMock.mockImplementation((options) => {
-      captured = options;
+      captured = {
+        mutationFn: options.mutationFn,
+        onError: options.onError ?? (() => {}),
+        onSuccess: options.onSuccess ?? (() => {}),
+      };
       return options;
     });
     useMutateSettings();
 
-    const payload = {
+    const payload: SettingsPayload = {
       twitchId: "123",
       data: {
         targetChannelDisplayName: "name",
@@ -391,11 +485,11 @@ describe("hooks", () => {
       },
     };
 
-    captured.onSuccess(payload);
+    expectCaptured(captured).onSuccess(payload);
     expect(setQueryDataMock).not.toHaveBeenCalled();
 
     getQueryDataMock.mockReturnValue({ ok: true });
-    captured.onSuccess(payload);
+    expectCaptured(captured).onSuccess(payload);
     expect(setQueryDataMock).toHaveBeenCalledWith(
       ["settings", "123"],
       payload.data

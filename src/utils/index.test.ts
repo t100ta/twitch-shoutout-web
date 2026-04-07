@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const mockSignInWithCustomToken = vi.hoisted(() => vi.fn());
 const mockGetIdTokenResult = vi.hoisted(() => vi.fn());
 const axiosPostMock = vi.hoisted(() => vi.fn());
-const mockAuth: { currentUser: any } = vi.hoisted(() => ({
+const mockAuth: { currentUser: null | { getIdTokenResult: typeof mockGetIdTokenResult } } = vi.hoisted(() => ({
   currentUser: {
     getIdTokenResult: mockGetIdTokenResult,
   },

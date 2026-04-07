@@ -32,22 +32,23 @@ export const useBrowserSessionWarning = (userId: string) => {
     }
 
     const channel = new BroadcastChannel(CHANNEL_NAME);
+    const peerSessionMap = peerSessionMapRef.current;
 
     const updateMultipleSessions = () => {
       const now = Date.now();
-      for (const [peerId, seenAt] of peerSessionMapRef.current.entries()) {
+      for (const [peerId, seenAt] of peerSessionMap.entries()) {
         if (now - seenAt > SESSION_TTL_MS) {
-          peerSessionMapRef.current.delete(peerId);
+          peerSessionMap.delete(peerId);
         }
       }
-      setHasMultipleSessions(peerSessionMapRef.current.size > 0);
+      setHasMultipleSessions(peerSessionMap.size > 0);
     };
 
     const markPeerSession = (peerSessionId: string) => {
       if (peerSessionId === sessionId) {
         return;
       }
-      peerSessionMapRef.current.set(peerSessionId, Date.now());
+      peerSessionMap.set(peerSessionId, Date.now());
       updateMultipleSessions();
     };
 
@@ -66,7 +67,7 @@ export const useBrowserSessionWarning = (userId: string) => {
         return;
       }
       if (message.type === "BYE") {
-        peerSessionMapRef.current.delete(message.sessionId);
+        peerSessionMap.delete(message.sessionId);
         updateMultipleSessions();
         return;
       }
@@ -90,7 +91,7 @@ export const useBrowserSessionWarning = (userId: string) => {
       postMessage("BYE");
       window.clearInterval(heartbeatTimer);
       channel.close();
-      peerSessionMapRef.current.clear();
+      peerSessionMap.clear();
       setHasMultipleSessions(false);
     };
   }, [sessionId, userId]);
