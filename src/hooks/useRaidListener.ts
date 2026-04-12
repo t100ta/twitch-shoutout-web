@@ -76,17 +76,6 @@ export const useRaidListener = ({
     },
     [emitRaid]
   );
-  const handleRaided = useCallback(
-    (channel: string, username: string, viewers: number) => {
-      const loginName = normalizeLoginName(username);
-      console.log(
-        `Detected "raided" event\nchannel: ${channel}\nloginName: ${loginName}\nviewers: ${viewers}`
-      );
-      emitRaid(channel, loginName);
-    },
-    [emitRaid]
-  );
-
   useEffect(() => {
     let isDisposed = false;
     const normalizedTargetLoginName = normalizeLoginName(targetLoginName);
@@ -188,7 +177,6 @@ export const useRaidListener = ({
         console.warn("Twitch notice:", { msgid, message });
       });
       client.on("usernotice", handleUserNotice);
-      client.on("raided", handleRaided);
     };
 
     setupClient();
@@ -211,7 +199,6 @@ export const useRaidListener = ({
     handleConnected,
     handleDisconnected,
     handleUserNotice,
-    handleRaided,
   ]);
 
   return { clientRef, raiderLoginName, raidEventId, isTokenInvalid };

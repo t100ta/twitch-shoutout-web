@@ -20,9 +20,12 @@ export const getRaidInfo = (
     return null;
   }
 
-  const login = tags[RAID_TAGS.login];
+  const login = tags[RAID_TAGS.login] ?? tags["login"];
   if (!login) {
     return null;
+  }
+  if (!tags[RAID_TAGS.login]) {
+    console.warn("msg-param-login missing in raid usernotice, falling back to login tag", { channel, tags });
   }
   const displayName = tags[RAID_TAGS.displayName] || login;
   return { channel, login: normalizeLoginName(login), displayName };

@@ -17,6 +17,19 @@ describe("raidUtils", () => {
     expect(result).toBeNull();
   });
 
+  it("getRaidInfo falls back to login tag when msg-param-login is missing", () => {
+    const result = getRaidInfo("channel", {
+      "msg-id": "raid",
+      "login": "raider",
+      "msg-param-displayName": "Raider Name",
+    });
+    expect(result).toEqual({
+      channel: "channel",
+      login: "raider",
+      displayName: "Raider Name",
+    });
+  });
+
   it("getRaidInfo returns raid info with displayName fallback", () => {
     const result = getRaidInfo("channel", {
       "msg-id": "raid",
