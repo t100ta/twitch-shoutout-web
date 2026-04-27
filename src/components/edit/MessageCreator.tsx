@@ -7,8 +7,8 @@ type Props = {
   accessToken: string;
   message: string;
   setMessage: React.Dispatch<React.SetStateAction<string>>;
-  handleCloseModal: (modal: RefObject<HTMLDialogElement>) => void;
-  handleShowModal: (modal: RefObject<HTMLDialogElement>) => void;
+  handleCloseModal: (modal: RefObject<HTMLDialogElement | null>) => void;
+  handleShowModal: (modal: RefObject<HTMLDialogElement | null>) => void;
 };
 
 export const MessageCreator = (props: Props) => {

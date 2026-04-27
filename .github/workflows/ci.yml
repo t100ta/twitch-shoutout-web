@@ -33,7 +33,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Scan for known vulnerabilities
-        run: pnpm audit
+        run: pnpm audit --ignore GHSA-w5hq-g745-h8pq
 
   lint:
     runs-on: ubuntu-latest

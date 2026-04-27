@@ -34,9 +34,13 @@ export const Edit = () => {
     userSettings?.isShoutoutCommandExecute ?? false
   );
 
-  const handleShowModal = (modal: React.RefObject<HTMLDialogElement>) =>
+  const handleShowModal = (
+    modal: React.RefObject<HTMLDialogElement | null>
+  ) =>
     modal.current?.showModal();
-  const handleCloseModal = (modal: React.RefObject<HTMLDialogElement>) =>
+  const handleCloseModal = (
+    modal: React.RefObject<HTMLDialogElement | null>
+  ) =>
     modal.current?.close();
 
   const cancelDialogRef = useRef<HTMLDialogElement>(null);
