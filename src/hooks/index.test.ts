@@ -47,7 +47,10 @@ import { useQueryUsers } from "./useQueryUsers";
 import { useQueryChannels } from "./useQueryChannels";
 import { useQuerySettings } from "./useQuerySettings";
 import { useMutateValidation } from "./useMutateValidation";
-import { useMutateShoutout } from "./useMutateShoutout";
+import {
+  ShoutoutUnavailableError,
+  useMutateShoutout,
+} from "./useMutateShoutout";
 import { useMutateSettings } from "./useMutateSettings";
 import {
   TOKEN_INVALID_ERROR,
@@ -323,6 +326,7 @@ describe("hooks", () => {
       captured = { mutationFn };
       return { mutationFn };
     });
+    axiosGetMock.mockResolvedValue({ data: { data: [{ viewer_count: 1 }] } });
     axiosPostMock.mockResolvedValue({ data: {} });
 
     useMutateShoutout();
@@ -334,6 +338,16 @@ describe("hooks", () => {
       moderatorId: "mod",
     });
 
+    expect(axiosGetMock).toHaveBeenCalledWith(
+      "https://api.twitch.tv/helix/streams",
+      {
+        headers: {
+          Authorization: "Bearer token",
+          "Client-Id": expect.any(String),
+        },
+        params: { user_id: "from" },
+      }
+    );
     expect(axiosPostMock).toHaveBeenCalledWith(
       "https://api.twitch.tv/helix/chat/shoutouts",
       null,
@@ -351,6 +365,27 @@ describe("hooks", () => {
     );
   });
 
+  it("useMutateShoutout skips post when broadcaster is offline", async () => {
+    let captured: ShoutoutMutationCapture | undefined;
+    useMutationMock.mockImplementation(({ mutationFn }) => {
+      captured = { mutationFn };
+      return { mutationFn };
+    });
+    axiosGetMock.mockResolvedValue({ data: { data: [] } });
+
+    useMutateShoutout();
+    const { mutationFn } = expectCaptured(captured);
+    await expect(
+      mutationFn({
+        token: "token",
+        fromBroadcasterId: "from",
+        toBroadcasterId: "to",
+        moderatorId: "mod",
+      })
+    ).rejects.toThrow(ShoutoutUnavailableError);
+    expect(axiosPostMock).not.toHaveBeenCalled();
+  });
+
   it("useMutateShoutout throws on axios error", async () => {
     let captured: ShoutoutMutationCapture | undefined;
     useMutationMock.mockImplementation(({ mutationFn }) => {
@@ -358,6 +393,7 @@ describe("hooks", () => {
       return { mutationFn };
     });
     isAxiosErrorMock.mockReturnValue(true);
+    axiosGetMock.mockResolvedValue({ data: { data: [{ viewer_count: 1 }] } });
     axiosPostMock.mockRejectedValue({ response: { data: "bad" } });
 
     useMutateShoutout();
@@ -379,6 +415,7 @@ describe("hooks", () => {
       return { mutationFn };
     });
     isAxiosErrorMock.mockReturnValue(false);
+    axiosGetMock.mockResolvedValue({ data: { data: [{ viewer_count: 1 }] } });
     axiosPostMock.mockRejectedValue(new Error("boom"));
 
     useMutateShoutout();

@@ -1,7 +1,10 @@
 import { useEffect, useRef, type MutableRefObject } from "react";
 import { replaceText, wait } from "../utils";
 import { Channel, User } from "../types";
-import { useMutateShoutout } from "./useMutateShoutout";
+import {
+  ShoutoutUnavailableError,
+  useMutateShoutout,
+} from "./useMutateShoutout";
 import { normalizeLoginName } from "../utils/raidUtils";
 
 type ShoutoutData = {
@@ -86,6 +89,10 @@ export const useRaidShoutout = ({
           });
           console.log("Shoutout executed successfully:", result);
         } catch (error) {
+          if (error instanceof ShoutoutUnavailableError) {
+            console.warn("Skip shoutout:", error.message);
+            return;
+          }
           console.error("Failed to execute shoutout:", error);
         }
       };
