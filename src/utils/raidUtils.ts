@@ -31,6 +31,19 @@ export const getRaidInfo = (
   return { channel, login: normalizeLoginName(login), displayName };
 };
 
+export const getRaidedInfo = (
+  channel: string,
+  username: string,
+  tags?: ChatUserstate
+): RaidInfo | null => {
+  const login = tags?.[RAID_TAGS.login] ?? username;
+  if (!login) {
+    return null;
+  }
+  const displayName = tags?.[RAID_TAGS.displayName] || username || login;
+  return { channel, login: normalizeLoginName(login), displayName };
+};
+
 export const shouldReuseClient = (
   readyState: string | null,
   currentChannel: string | null,

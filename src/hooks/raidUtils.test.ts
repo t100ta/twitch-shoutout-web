@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   getRaidInfo,
+  getRaidedInfo,
   normalizeLoginName,
   shouldReuseClient,
   toIrcPassword,
@@ -66,6 +67,32 @@ describe("raidUtils", () => {
       login: "raider",
       displayName: "Raider Name",
     });
+  });
+
+  it("getRaidedInfo uses msg-param-login from tags", () => {
+    const result = getRaidedInfo("channel", "Raider Display", {
+      "msg-param-login": "raider_login",
+      "msg-param-displayName": "Raider Display",
+    });
+    expect(result).toEqual({
+      channel: "channel",
+      login: "raider_login",
+      displayName: "Raider Display",
+    });
+  });
+
+  it("getRaidedInfo falls back to username when login tag is missing", () => {
+    const result = getRaidedInfo("channel", "#Raider");
+    expect(result).toEqual({
+      channel: "channel",
+      login: "raider",
+      displayName: "#Raider",
+    });
+  });
+
+  it("getRaidedInfo returns null when login cannot be resolved", () => {
+    const result = getRaidedInfo("channel", "");
+    expect(result).toBeNull();
   });
 
   it("shouldReuseClient returns true only when open and same channel", () => {

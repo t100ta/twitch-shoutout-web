@@ -5,8 +5,18 @@ declare module "tmi.js" {
     /**
      * USERNOTICE イベント（msg-id=raid 含む）を受け取れるように
      */
-    usernotice(channel: string, userstate: ChatUserstate, message: string): void;
-    raided(channel: string, username: string, viewers: number): void;
+    usernotice(
+      msgid: string,
+      channel: string,
+      userstate: ChatUserstate,
+      message: string
+    ): void;
+    raided(
+      channel: string,
+      username: string,
+      viewers: number,
+      userstate: ChatUserstate
+    ): void;
   }
 }
 

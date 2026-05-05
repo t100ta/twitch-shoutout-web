@@ -3,6 +3,7 @@ import { ChatUserstate, Client } from "tmi.js";
 import { TOKEN_INVALID_ERROR, useMutateValidation } from "./useMutateValidation";
 import {
   getRaidInfo,
+  getRaidedInfo,
   normalizeLoginName,
   shouldReuseClient,
   toIrcPassword,
@@ -57,16 +58,41 @@ export const useRaidListener = ({
   const handleDisconnected = useCallback((reason: string) => {
     console.log("Disconnected from Twitch chat:", reason);
   }, []);
+  const handleRaided = useCallback(
+    (
+      channel: string,
+      username: string,
+      viewers: number,
+      tags?: ChatUserstate
+    ) => {
+      const raidInfo = getRaidedInfo(channel, username, tags);
+      if (!raidInfo) {
+        console.warn("Received raided event but failed to parse login.", {
+          channel,
+          username,
+          viewers,
+          tags,
+        });
+        return;
+      }
+      console.log(
+        `Detected "raided"\nchannel: ${raidInfo.channel}\nusername: ${raidInfo.displayName}\nloginName: ${raidInfo.login}\nviewers: ${viewers}`
+      );
+      emitRaid(raidInfo.channel, raidInfo.login);
+    },
+    [emitRaid]
+  );
   const handleUserNotice = useCallback(
-    (channel: string, tags: ChatUserstate) => {
+    (msgid: string, channel: string, tags: ChatUserstate) => {
+      if (msgid !== "raid") {
+        return;
+      }
       const raidInfo = getRaidInfo(channel, tags);
       if (!raidInfo) {
-        if (tags["msg-id"] === "raid") {
-          console.warn('Received raid usernotice but failed to parse login.', {
-            channel,
-            tags,
-          });
-        }
+        console.warn("Received raid usernotice but failed to parse login.", {
+          channel,
+          tags,
+        });
         return;
       }
       console.log(
@@ -176,6 +202,7 @@ export const useRaidListener = ({
       client.on("notice", (_channel, msgid, message) => {
         console.warn("Twitch notice:", { msgid, message });
       });
+      client.on("raided", handleRaided);
       client.on("usernotice", handleUserNotice);
     };
 
@@ -198,6 +225,7 @@ export const useRaidListener = ({
     onTokenInvalid,
     handleConnected,
     handleDisconnected,
+    handleRaided,
     handleUserNotice,
   ]);
 
