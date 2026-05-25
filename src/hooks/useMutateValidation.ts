@@ -1,12 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
 import axios, { HttpStatusCode } from "axios";
+import type { Authorization } from "../types";
 
 export const TOKEN_INVALID_ERROR = "TOKEN_INVALID";
 export const VALIDATION_FAILED_ERROR = "VALIDATION_FAILED";
 export const UNEXPECTED_VALIDATION_ERROR = "UNEXPECTED_VALIDATION_ERROR";
 
 export const useMutateValidation = () => {
-  const executeValidation = useMutation({
+  const executeValidation = useMutation<Authorization, Error, string>({
     mutationFn: async (oauthToken: string) => {
       try {
         const { data, status } = await axios.get(

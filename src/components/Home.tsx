@@ -10,8 +10,11 @@ import { useQuerySettings } from "../hooks/useQuerySettings";
 import { useRaidListener } from "../hooks/useRaidListener";
 import { useRaidShoutout } from "../hooks/useRaidShoutout";
 import { useBrowserSessionWarning } from "../hooks/useBrowserSessionWarning";
+import { useTwitchTokenMonitor } from "../hooks/useTwitchTokenMonitor";
+import { AUTH_API_URI } from "../constants";
 import {
   cautionTextStyle,
+  tokenWarningActionStyle,
   shoutoutMessageStyle,
   userSettingItemStyle,
   warningBoxStyle,
@@ -59,6 +62,11 @@ export const Home = () => {
   const handleTokenInvalid = useCallback(() => {
     clearBotUser();
   }, [clearBotUser]);
+  const handleReauthorize = useCallback(() => {
+    window.location.href = `${AUTH_API_URI}/authWithTwitch`;
+  }, []);
+
+  const tokenMonitor = useTwitchTokenMonitor(ACCESS_TOKEN);
 
   const { clientRef, raiderLoginName, raidEventId, isTokenInvalid } = useRaidListener({
     accessToken: ACCESS_TOKEN,
@@ -105,11 +113,11 @@ export const Home = () => {
   if (isUserSettingsError) {
     return <div>Error</div>;
   }
-  if (isTokenInvalid) {
+  if (isTokenInvalid || tokenMonitor.isTokenInvalid) {
     return (
       <div>
         <p>認証の有効期限が切れています。再ログインしてください。</p>
-        <button onClick={() => navigate("/")}>ログインへ</button>
+        <button onClick={handleReauthorize}>再ログインする</button>
       </div>
     );
   }
@@ -124,6 +132,14 @@ export const Home = () => {
           <p className={cautionTextStyle}>
             注意: この警告は同一ブラウザ内のタブのみ検知します。別ブラウザ・別端末での同時ログインは検知できません。
           </p>
+        </div>
+      ) : null}
+      {tokenMonitor.isExpiringSoon ? (
+        <div className={warningBoxStyle}>
+          認証の有効期限が近づいています。配信中に機能が止まらないよう、再ログインして期限を延長してください。
+          <div className={tokenWarningActionStyle}>
+            <button onClick={handleReauthorize}>再ログインして延長</button>
+          </div>
         </div>
       ) : null}
       <img

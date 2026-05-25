@@ -56,7 +56,7 @@ import {
   TOKEN_INVALID_ERROR,
   VALIDATION_FAILED_ERROR,
 } from "./useMutateValidation";
-import type { Channel, UserSettings } from "../types";
+import type { Authorization, Channel, UserSettings } from "../types";
 
 type QueryCapture<TData> = {
   queryKey: string[];
@@ -65,7 +65,7 @@ type QueryCapture<TData> = {
 };
 
 type ValidationMutationCapture = {
-  mutationFn: (oauthToken: string) => Promise<unknown>;
+  mutationFn: (oauthToken: string) => Promise<Authorization>;
 };
 
 type ShoutoutPayload = {
@@ -275,11 +275,18 @@ describe("hooks", () => {
       captured = { mutationFn };
       return { mutationFn };
     });
-    axiosGetMock.mockResolvedValue({ data: {}, status: 200 });
+    const validateResponse = {
+      client_id: "client-id",
+      login: "login",
+      scopes: ["chat:read"],
+      user_id: "user-id",
+      expires_in: 3600,
+    };
+    axiosGetMock.mockResolvedValue({ data: validateResponse, status: 200 });
 
     useMutateValidation();
     const { mutationFn } = expectCaptured(captured);
-    await mutationFn("oauth-token");
+    await expect(mutationFn("oauth-token")).resolves.toEqual(validateResponse);
 
     expect(axiosGetMock).toHaveBeenCalledWith(
       "https://id.twitch.tv/oauth2/validate",

@@ -25,3 +25,7 @@ export const cautionTextStyle = style({
   marginTop: "0.5rem",
   marginBottom: 0,
 });
+
+export const tokenWarningActionStyle = style({
+  marginTop: "0.75rem",
+});

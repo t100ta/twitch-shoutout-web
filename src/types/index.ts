@@ -1,9 +1,9 @@
 export type Authorization = {
-  clientId: string;
+  client_id: string;
   login: string;
   scopes: Array<string>;
-  userId: string;
-  expiresIn: number;
+  user_id: string;
+  expires_in: number;
 };
 
 export type User = {
