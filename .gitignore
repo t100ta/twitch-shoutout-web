@@ -118,3 +118,4 @@ coverage
 .firebaserc
 hosting*
 pnpm-debug.log*
+.codex
