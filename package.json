@@ -22,7 +22,7 @@
     "@vanilla-extract/vite-plugin": "^5.1.4",
     "axios": "^1.17.0",
     "firebase": "^12.12.0",
-    "firebase-admin": "^13.0.2",
+    "firebase-admin": "^14.0.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-icons": "^5.4.0",
