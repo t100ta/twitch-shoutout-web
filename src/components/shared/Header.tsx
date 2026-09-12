@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import useStore from "../../store";
 import { auth } from "../../firebase";
@@ -7,9 +8,11 @@ import { header, headerLogo } from "./Header.css";
 
 export const Header = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { clearBotUser } = useStore();
 
   const handleLogout = async () => {
+    queryClient.clear();
     clearBotUser();
     await signOut(auth);
     await navigate("/");

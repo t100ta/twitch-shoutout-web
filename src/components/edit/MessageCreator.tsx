@@ -4,7 +4,6 @@ import { replaceText } from "../../utils";
 import { displayTextStyle } from "./MessageCreator.css";
 
 type Props = {
-  accessToken: string;
   message: string;
   setMessage: React.Dispatch<React.SetStateAction<string>>;
   handleCloseModal: (modal: RefObject<HTMLDialogElement | null>) => void;

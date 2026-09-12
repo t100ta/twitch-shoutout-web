@@ -1,179 +1,55 @@
-import { useCallback, useMemo } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import useStore from "../store";
-import { replaceText } from "../utils";
-import { Channel, User } from "../types";
+import { httpsCallable } from "firebase/functions";
 import { Header } from "./shared/Header";
-import { useQueryUsers } from "../hooks/useQueryUsers";
-import { useQueryChannels } from "../hooks/useQueryChannels";
-import { useQuerySettings } from "../hooks/useQuerySettings";
-import { useRaidListener } from "../hooks/useRaidListener";
-import { useRaidShoutout } from "../hooks/useRaidShoutout";
-import { useBrowserSessionWarning } from "../hooks/useBrowserSessionWarning";
-import { useTwitchTokenMonitor } from "../hooks/useTwitchTokenMonitor";
+import useStore from "../store";
+import { functions } from "../firebase";
 import { AUTH_API_URI } from "../constants";
-import {
-  cautionTextStyle,
-  tokenWarningActionStyle,
-  shoutoutMessageStyle,
-  userSettingItemStyle,
-  warningBoxStyle,
-} from "./Home.css";
-
+import { useLiveDocument } from "../hooks/useLiveDocument";
+import { useMutateSettings } from "../hooks/useMutateSettings";
+import { TwitchConnection, UserSettings } from "../types";
+import { replaceText } from "../utils";
+import { connectionLabel, resultLabel } from "../utils/connection";
 export const Home = () => {
+  const user = useStore((s) => s.botUser);
+  const settings = useLiveDocument<UserSettings>("settings", user?.id);
+  const connection = useLiveDocument<TwitchConnection>("twitch_connections", user?.id);
+  const mutation = useMutateSettings();
   const navigate = useNavigate();
-  const { botUser, clearBotUser } = useStore();
-  const ACCESS_TOKEN = botUser?.accessToken as string;
-  const { hasMultipleSessions } = useBrowserSessionWarning(
-    (botUser?.id as string) || ""
-  );
-  const {
-    data: userSettings,
-    isLoading: isUserSettingsLoading,
-    isError: isUserSettingsError,
-  } = useQuerySettings(botUser?.id as string);
-
-  const {
-    targetDisplayName,
-    targetLoginName,
-    targetId,
-    shoutoutMessage,
-    isShoutoutCommandExecute,
-  } = useMemo(() => {
-    if (userSettings) {
-      return {
-        targetDisplayName: userSettings.targetChannelDisplayName,
-        targetLoginName: userSettings.targetChannelLoginName,
-        targetId: userSettings.targetChannelId,
-        shoutoutMessage: userSettings.shoutoutMessage,
-        isShoutoutCommandExecute: userSettings.isShoutoutCommandExecute,
-      };
-    }
-    return {
-      targetDisplayName: botUser?.displayName || "",
-      targetLoginName: botUser?.loginName || "",
-      targetId: botUser?.id || "",
-      shoutoutMessage:
-        "◆◆◆ Thanks for the raid! $displayname さん( https://www.twitch.tv/$loginname ). | $category -$title",
-      isShoutoutCommandExecute: false,
-    };
-  }, [userSettings, botUser?.displayName, botUser?.loginName, botUser?.id]);
-
-  const handleTokenInvalid = useCallback(() => {
-    clearBotUser();
-  }, [clearBotUser]);
-  const handleReauthorize = useCallback(() => {
-    window.location.href = `${AUTH_API_URI}/authWithTwitch`;
-  }, []);
-
-  const tokenMonitor = useTwitchTokenMonitor(ACCESS_TOKEN);
-
-  const { clientRef, raiderLoginName, raidEventId, isTokenInvalid } = useRaidListener({
-    accessToken: ACCESS_TOKEN,
-    targetLoginName,
-    botUserLoginName: botUser?.loginName,
-    onTokenInvalid: handleTokenInvalid,
-  });
-
-  const { data: raiderUsersData } = useQueryUsers(
-    ACCESS_TOKEN,
-    raiderLoginName
-  );
-  const raiderId = raiderUsersData ? raiderUsersData[0].id : null;
-  const { data: raiderChannelsData } = useQueryChannels(
-    ACCESS_TOKEN,
-    raiderId as string
-  );
-
-  const shoutoutData = useMemo<{
-    users: User[];
-    channels: Channel[];
-  } | null>(() => {
-    if (!raiderUsersData || !raiderChannelsData) {
-      return null;
-    }
-    return { users: raiderUsersData, channels: raiderChannelsData };
-  }, [raiderUsersData, raiderChannelsData]);
-
-  useRaidShoutout({
-    clientRef,
-    shoutoutData,
-    raidEventId,
-    targetLoginName,
-    shoutoutMessage,
-    isShoutoutCommandExecute,
-    accessToken: ACCESS_TOKEN,
-    targetId,
-    botUserId: botUser?.id,
-  });
-
-  if (isUserSettingsLoading) {
-    return <div>Loading...</div>;
-  }
-  if (isUserSettingsError) {
-    return <div>Error</div>;
-  }
-  if (isTokenInvalid || tokenMonitor.isTokenInvalid) {
-    return (
-      <div>
-        <p>認証の有効期限が切れています。再ログインしてください。</p>
-        <button onClick={handleReauthorize}>再ログインする</button>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <Header />
-      <p>Twitch Shoutout Web</p>
-      {hasMultipleSessions ? (
-        <div className={warningBoxStyle}>
-          同一ブラウザ内でこのアカウントのタブが複数開かれています。Shoutout処理が重複実行される可能性があるため、1タブにしてください。
-          <p className={cautionTextStyle}>
-            注意: この警告は同一ブラウザ内のタブのみ検知します。別ブラウザ・別端末での同時ログインは検知できません。
-          </p>
-        </div>
-      ) : null}
-      {tokenMonitor.isExpiringSoon ? (
-        <div className={warningBoxStyle}>
-          認証の有効期限が近づいています。配信中に機能が止まらないよう、再ログインして期限を延長してください。
-          <div className={tokenWarningActionStyle}>
-            <button onClick={handleReauthorize}>再ログインして延長</button>
-          </div>
-        </div>
-      ) : null}
-      <img
-        src={botUser?.icon}
-        alt={botUser?.displayName || "Bot User"}
-        loading="lazy"
-      />
-      <p>
-        ようこそ{" "}
-        <span className={userSettingItemStyle}>{botUser?.displayName}</span>{" "}
-        さん
-      </p>
-      <div>
-        <p>投稿先チャンネル</p>
-        <p className={userSettingItemStyle}>{targetDisplayName}</p>
-        <p>{targetLoginName}</p>
-      </div>
-      <div>
-        Shoutoutメッセージ
-        <p className={`${userSettingItemStyle} ${shoutoutMessageStyle}`}>
-          {replaceText(shoutoutMessage)}
-        </p>
-      </div>
-      <div>
-        <p>
-          /shoutoutコマンドを自動実行
-          {isShoutoutCommandExecute ? (
-            <span className={userSettingItemStyle}>する</span>
-          ) : (
-            <span className={userSettingItemStyle}>しない</span>
-          )}
-        </p>
-      </div>
-      <button onClick={() => navigate("/edit")}>編集する</button>
-    </>
-  );
+  const [error, setError] = useState("");
+  const [retrying, setRetrying] = useState(false);
+  if (!user) return null;
+  const s = settings.data;
+  const toggle = async () => {
+    setError("");
+    try { await mutation.mutateAsync({ twitchId: user.id, data: { automationEnabled: s?.automationEnabled === false } }); }
+    catch { setError("保存に失敗しました。再度お試しください。"); }
+  };
+  const retry = async () => {
+    setRetrying(true); setError("");
+    try { await httpsCallable(functions, "retryTwitchConnection")(); }
+    catch { setError("接続に失敗しました。しばらくして再試行してください。"); }
+    finally { setRetrying(false); }
+  };
+  return <>
+    <Header />
+    <h1>Twitch Shoutout Web</h1>
+    <p>ようこそ {user.displayName} さん</p>
+    <p role="status">{settings.loading || connection.loading ? "読み込み中" : settings.error || connection.error ? "接続エラー" : connectionLabel(connection.data, s, user.id)}</p>
+    {connection.data?.status === "error" && connection.data.errorCode ? <p role="alert">接続エラーコード: {connection.data.errorCode}</p> : null}
+    {connection.data?.status === "error" && connection.data.errorDetail ? <p role="alert">Twitchの応答: {connection.data.errorDetail}</p> : null}
+    <p>自動処理はブラウザを閉じても、ログアウトしても続きます。停止するにはスイッチをOFFにしてください。</p>
+    <label><input type="checkbox" checked={s?.automationEnabled !== false} disabled={mutation.isPending || settings.loading || settings.error}
+      onChange={() => void toggle()} />自動処理を有効にする</label>
+    <p><button onClick={() => { window.location.href = `${AUTH_API_URI}/authWithTwitch`; }}>Twitchと再連携</button>{" "}
+      <button disabled={retrying} onClick={() => void retry()}>接続を再試行</button></p>
+    {error && <p role="alert">{error}</p>}
+    <p>投稿先・Raid監視先: {s?.targetChannelDisplayName || user.displayName} ({s?.targetChannelLoginName || user.loginName})</p>
+    <p>投稿アカウント: {user.displayName}</p>
+    <p>Shoutoutメッセージ: {replaceText(s?.shoutoutMessage || "")}</p>
+    <p>/shoutoutを自動実行: {s?.isShoutoutCommandExecute ? "する" : "しない"}</p>
+    {connection.data?.lastResult && <p>直近の処理: {connection.data.lastResult.status === "unknown" ? "結果不明（自動再送しません）" :
+      `チャット: ${resultLabel(connection.data.lastResult.chatResult)} / Shoutout: ${resultLabel(connection.data.lastResult.shoutoutResult)}`}</p>}
+    <button onClick={() => navigate("/edit")}>編集する</button>
+  </>;
 };

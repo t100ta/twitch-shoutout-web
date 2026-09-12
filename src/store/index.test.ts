@@ -18,7 +18,6 @@ describe("store", () => {
   it("setBotUser and clearBotUser update botUser", async () => {
     const useStore = await loadStore();
     useStore.getState().setBotUser({
-      accessToken: "access",
       id: "id",
       displayName: "display",
       loginName: "login",
@@ -26,7 +25,6 @@ describe("store", () => {
     });
 
     expect(useStore.getState().botUser).toEqual({
-      accessToken: "access",
       id: "id",
       displayName: "display",
       loginName: "login",

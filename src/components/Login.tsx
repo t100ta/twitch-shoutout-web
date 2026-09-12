@@ -1,15 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { getAuth } from "firebase/auth";
 import { AUTH_API_URI } from "../constants";
 import useStore from "../store";
 import { Contact } from "./shared/Contact";
-import { exchangeAuthCode, signInWithTwitch } from "../utils";
+import { exchangeAuthCode, signInWithTwitch, syncBotUserFromCurrentUser } from "../utils";
 import logo from "../assets/logo.png";
 import { logoStyle } from "./Logo.css";
 
 export const Login = () => {
   const navigate = useNavigate();
+  const exchangeStarted = useRef(false);
   const [searchParams] = useSearchParams();
   const [authErrorMessage, setAuthErrorMessage] = useState("");
   const { clearBotUser, setBotUser } = useStore();
@@ -20,6 +21,8 @@ export const Login = () => {
       return "";
     }
     switch (authError) {
+      case "reconnect_required":
+        return "Twitchとの再連携が必要です。新しい権限でログインしてください。";
       case "invalid_request":
         return "認証リクエストが不正です。再度お試しください。";
       case "invalid_state":
@@ -44,7 +47,8 @@ export const Login = () => {
 
   useEffect(() => {
     const authCode = searchParams.get("auth_code");
-    if (authCode) {
+    if (authCode && !exchangeStarted.current) {
+      exchangeStarted.current = true;
       (async () => {
         try {
           const customToken = await exchangeAuthCode(authCode);
@@ -60,8 +64,8 @@ export const Login = () => {
           }
 
           console.error("Firebase login error:", signInResult.reason);
-        } catch (error) {
-          console.error("Auth code exchange failed:", error);
+        } catch {
+          console.error("Auth code exchange failed");
         }
 
         alert("ログインに失敗しました。");
@@ -76,7 +80,7 @@ export const Login = () => {
   }, [searchParams, navigate, clearBotUser, setBotUser]);
 
   useEffect(() => {
-    if (authErrorText) {
+    if (authErrorText || searchParams.get("auth_code")) {
       return;
     }
     (async () => {
@@ -84,15 +88,13 @@ export const Login = () => {
       if (!currentUser) {
         return;
       }
-      const idTokenResult = await currentUser.getIdTokenResult();
-      const claims = idTokenResult.claims;
-      if (claims?.twitch_id) {
-        navigate("/home");
-      }
+      const result = await syncBotUserFromCurrentUser(setBotUser);
+      if (result.ok) navigate("/home");
+      else if (result.reason === "RECONNECT_REQUIRED") setAuthErrorMessage("Twitchとの再連携が必要です。新しい権限でログインしてください。");
     })().catch((error) => {
       console.error("Auto login check failed:", error);
     });
-  }, [authErrorText, navigate]);
+  }, [authErrorText, navigate, searchParams, setBotUser]);
 
   const handleLoginWithTwitch = () =>
     (window.location.href = `${AUTH_API_URI}/authWithTwitch`);
@@ -103,7 +105,7 @@ export const Login = () => {
       <div>
         <p>Twitchアカウントと連携すると使えます。</p>
         <p>
-          連携したアカウントのチャンネルに来るRaidを検知し、連携したアカウントでメッセージをチャットに投稿します。
+          設定したチャンネルへのRaidを検知し、連携したアカウントでメッセージを投稿します。ブラウザを閉じても自動処理は続きます。
         </p>
         <button onClick={handleLoginWithTwitch}>
           Twitchアカウントでログイン

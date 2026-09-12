@@ -1,5 +1,5 @@
 import axios from "axios";
-import { signInWithCustomToken } from "firebase/auth";
+import { signInWithCustomToken, signOut } from "firebase/auth";
 import { auth } from "../firebase";
 import { ShoutoutProperties } from "../types";
 import type { BotUser } from "../store";
@@ -27,12 +27,8 @@ export const replaceText = (text: string, data?: ShoutoutProperties) => {
     $game: data.game,
     $title: data.title,
   };
-  let replacedText: string = text;
-  Object.keys(sampleUser).forEach((key) => {
-    const regularExpression = new RegExp(`\\${key}`, "g");
-    replacedText = replacedText.replace(regularExpression, sampleUser[key]);
-  });
-  return replacedText;
+  return text.replace(/\$(displayname|displayName|loginname|loginName|category|game|title)/g,
+    (key) => sampleUser[key]);
 };
 
 export const signInWithTwitch = async (
@@ -46,8 +42,8 @@ export const signInWithTwitch = async (
   try {
     await signInWithCustomToken(auth, customToken);
     return await syncBotUserFromCurrentUser(setBotUser);
-  } catch (error) {
-    console.error("Error signing in with Twitch: ", error);
+  } catch {
+    console.error("Twitch sign in failed");
     return { ok: false as const, reason: "SIGN_IN_FAILED" as const };
   }
 };
@@ -63,14 +59,16 @@ export const syncBotUserFromCurrentUser = async (
 
     const idTokenResult = await currentUser.getIdTokenResult();
     const claims = idTokenResult.claims;
-    const accessToken = claims.twitch_access_token;
+    if ("twitch_access_token" in claims) {
+      await signOut(auth);
+      return { ok: false as const, reason: "RECONNECT_REQUIRED" as const };
+    }
     const id = claims.twitch_id;
     const displayName = claims.twitch_display_name;
     const loginName = claims.twitch_login_name;
     const icon = claims.twitch_icon;
 
     if (
-      typeof accessToken !== "string" ||
       typeof id !== "string" ||
       typeof displayName !== "string" ||
       typeof loginName !== "string" ||
@@ -79,17 +77,16 @@ export const syncBotUserFromCurrentUser = async (
       return { ok: false as const, reason: "CLAIMS_MISSING" as const };
     }
 
+    if (auth.currentUser !== currentUser) return { ok: false as const, reason: "CURRENT_USER_CHANGED" as const };
     setBotUser({
-      accessToken,
       id,
       displayName,
       loginName,
       icon,
     });
-    console.log("Twitch Login Name: ", loginName);
     return { ok: true as const };
-  } catch (error) {
-    console.error("Error reading Twitch claims: ", error);
+  } catch {
+    console.error("Twitch claims unavailable");
     return { ok: false as const, reason: "CLAIMS_READ_FAILED" as const };
   }
 };

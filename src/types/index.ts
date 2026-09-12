@@ -1,47 +1,18 @@
-export type Authorization = {
-  client_id: string;
-  login: string;
-  scopes: Array<string>;
-  user_id: string;
-  expires_in: number;
-};
-
-export type User = {
-  id: string;
-  login: string;
-  display_name: string;
-  type: string;
-  broadcaster_type: string;
-  description: string;
-  profile_image_url: string;
-  offline_image_url: string;
-  view_count: string;
-  created_at: string;
-};
-
-export type Channel = {
-  broadcaster_id: string;
-  broadcaster_login?: string;
-  broadcaster?: string;
-  broadcaster_name: string;
-  broadcaster_language: string;
-  game_id: string;
-  game_name: string;
-  title: string;
-  delay: number;
-};
-
-export type ShoutoutProperties = {
-  displayName: string;
-  name: string;
-  game: string;
-  title: string;
-};
-
+export type TwitchUser = { id: string; login: string; display_name: string; profile_image_url: string };
+export type ShoutoutProperties = { displayName: string; name: string; game: string; title: string };
 export type UserSettings = {
   targetChannelDisplayName: string;
   targetChannelLoginName: string;
   targetChannelId: string;
   shoutoutMessage: string;
   isShoutoutCommandExecute: boolean;
+  automationEnabled?: boolean;
+};
+export type TwitchConnection = {
+  status: "connected" | "syncing" | "error" | "reconnect_required";
+  targetId?: string;
+  subscriptionStatus?: string;
+  errorCode?: string;
+  errorDetail?: string;
+  lastResult?: { status?: string; chatResult?: string; shoutoutResult?: string; dropReason?: string };
 };

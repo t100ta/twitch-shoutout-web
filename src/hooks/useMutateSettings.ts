@@ -13,26 +13,13 @@ export const useMutateSettings = () => {
    * https://firebase.google.com/docs/firestore/manage-data/add-data?hl=ja
    */
   const createSettingsMutation = useMutation({
-    mutationFn: async (payload: { twitchId: string; data: UserSettings }) => {
+    mutationFn: async (payload: { twitchId: string; data: Partial<UserSettings> }) => {
       const settingsRef = collection(db, "settings");
-      await setDoc(doc(settingsRef, payload.twitchId), payload.data);
+      await setDoc(doc(settingsRef, payload.twitchId), payload.data, { merge: true });
       return payload;
     },
-    onSuccess: (payload) => {
-      const previousSettings = queryClient.getQueryData([
-        "settings",
-        payload.twitchId,
-      ]);
-      if (previousSettings) {
-        queryClient.setQueryData(["settings", payload.twitchId], payload.data);
-      }
-    },
-    onError: (err: unknown) => {
-      if (err instanceof Error) {
-        console.log(err.message);
-      } else {
-        console.log(err);
-      }
+    onSuccess: async (payload) => {
+      await queryClient.invalidateQueries({ queryKey: ["settings", payload.twitchId] });
     },
   });
   return createSettingsMutation;

@@ -1,137 +1,71 @@
 # Twitch Shoutout Web
 
-Twitch の Raid 検知に反応して、対象チャンネルへメッセージ投稿＆任意で `/shoutout` 実行を行う Web アプリです。
+設定したチャンネルへのRaidを検知し、OAuthで連携したユーザーとしてチャット投稿・任意のShoutoutを実行します。処理はFirebaseバックエンドで継続し、ブラウザを閉じてもログアウトしても止まりません。停止にはHomeの「自動処理を有効にする」をOFFにします。
 
-## Features
+## 画面と構成
 
-- Twitch アカウント連携（Firebase Custom Token）
-- Raid 検知（tmi.js / chat の USERNOTICE）
-- シャウトアウト用メッセージ投稿
-- 任意で `/shoutout` を自動実行
-- ユーザーごとの設定保存（Firestore）
+- `/`: Twitch OAuthログイン。60秒有効の一度限りの `auth_code` をバックエンド `/exchange` で交換し、Firebase `signInWithCustomToken` を実行。
+- `/home`: 稼働中・停止中・設定反映中・接続エラー・再連携必要を表示。全体ON/OFF、Twitch再連携、接続再試行、直近の投稿結果。
+- `/edit`: 投稿先、テンプレート、Shoutoutスイッチ。保存完了後に遷移し、保存失敗時には編集内容を保持。
 
-## Tech Stack
+React 19、TypeScript、Vite、Zustand、TanStack Query、Firebase Auth/Firestore/Functionsを利用します。ブラウザにTwitch tokenを保持せず、Helix・IRC・token validationを直接呼びません。旧token claimを持つセッションはログアウトし、再連携を案内します。検索は認証済みcallable `lookupTwitchUser({ login })`、接続修復は `retryTwitchConnection()` を使います。検索結果・設定キャッシュはユーザー間で引き継ぎません。
 
-- React 18 + TypeScript + Vite
-- Zustand（状態管理）
-- TanStack Query（データ取得）
-- Firebase Auth + Firestore
-- tmi.js + Twitch Helix API
+Firebaseプロジェクト `shoutout-web-c8caa`、UID = Twitch User ID、`settings/{uid}` の対応は維持します。既存の5設定フィールドに `automationEnabled` を追加し、未存在はtrueです。設定はマージ保存し、既存データを初期化しません。投稿先未設定は本人のチャンネルです。連携状態は本人の `twitch_connections/{uid}` を購読します。
 
-## Requirements
+バックエンドのコード・Rules・OAuth/EventSubフロー・collections・Secret設定・deploy/migrationの詳細は、隣の [awt-cephalon README](../awt-cephalon/README.md) を参照してください。
 
-- mise
-- Node.js 24 LTS（`24.13.1` 固定）
-- pnpm（`10.11.0`、`mise` で管理）
-- Firebase CLI（グローバル導入）
+## 開発
 
-## WSL2 Ubuntu: Volta -> mise migration
+既存のmise、Node 24.13.1、pnpm 10.11.0を使用します。
 
-### Background
-
-- 2025-11-14 に Volta 公式で「Volta はメンテナンスされておらず、`mise` への移行を推奨」と案内されています。
-- 参照: https://github.com/volta-cli/volta/issues/2080
-
-1. Volta を無効化/削除
-   - `volta uninstall node yarn`
-   - `volta setup --quiet` を実行済みなら、`~/.bashrc` や `~/.zshrc` の Volta 初期化行（`VOLTA_HOME` / `PATH`）を削除
-2. mise をインストール
-   - `curl https://mise.run | sh`
-   - `echo 'eval "$(~/.local/bin/mise activate bash)"' >> ~/.bashrc`
-   - `exec "$SHELL"`
-3. プロジェクトでツールを適用
-   - `mise trust`
-   - `mise install`
-4. 確認
-   - `node -v` が `v24.13.1`
-   - `pnpm -v` が `10.11.0`
-
-### Migrate global tools (optional)
-
-Volta のグローバルパッケージは自動移行されないため、必要なものだけ `mise` 管理の Node 環境で再インストールします。
-
-1. Volta 側の一覧を確認
-   - `volta list all`
-2. 必要な CLI を `mise` 有効状態で再インストール
-   - `eval "$(~/.local/bin/mise activate bash)"`
-   - `npm install -g @openai/codex firebase-tools`
-3. 参照先が `mise` 側になっているか確認
-   - `which codex firebase`
-4. `codex` 利用中の注意
-   - 会話履歴は `~/.codex/history.jsonl` と `~/.codex/state_5.sqlite` に保存されるため、インストール元（Volta/mise）を変えても履歴は維持される
-   - ただし安全のため、先に `mise` 側で `@openai/codex` を導入し、`which codex` で参照先を確認してから Volta 側を外す
-
-## Setup
-
-1. 依存関係のインストール
-   - `mise trust`
-   - `mise install`
-   - `pnpm install`
-2. 環境変数の設定（`.env.local` など）
-
-### Environment Variables
-
-```
-VITE_APP_URI=
-VITE_AUTH_API_URI=
-VITE_TWITCH_CLIENT_ID=
-
-VITE_FIREBASE_API_KEY=
-VITE_FIREBASE_AUTH_DOMAIN=
-VITE_FIREBASE_PROJECT_ID=
-VITE_FIREBASE_STORAGE_BUCKET=
-VITE_FIREBASE_MESSAGING_SENDER_ID=
-VITE_FIREBASE_APP_ID=
+```bash
+mise install
+mise exec -- pnpm install --frozen-lockfile
+mise run dev
+mise run test
+mise run lint
+mise run build
 ```
 
-## Development
+環境変数（`.env.local` など）:
 
-- `mise run dev`  
-  Vite 開発サーバ
+```dotenv
+VITE_APP_URI=http://localhost:5000
+VITE_AUTH_API_URI=http://localhost:5001/shoutout-web-c8caa/us-central1/authWithTwitch
+VITE_FIREBASE_API_KEY=your-firebase-api-key
+VITE_FIREBASE_AUTH_DOMAIN=your-firebase-auth-domain
+VITE_FIREBASE_PROJECT_ID=shoutout-web-c8caa
+VITE_FIREBASE_STORAGE_BUCKET=your-storage-bucket
+VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
+VITE_FIREBASE_APP_ID=your-app-id
+```
 
-- `mise run serve:dev`  
-  `build:dev` → Firebase Hosting Emulator
+本番では既存のアプリURL・認証API URLを使います。`VITE_TWITCH_CLIENT_ID` は不要になりました。Client SecretやEventSub Secretを `VITE_*` に設定しないでください。
 
-## Testing
+バックエンド側でAuth/Functions/Firestore Emulatorを起動し、フロントは `mise run serve:dev` でHosting Emulatorを起動できます。localhostではAuth 9099、Functions 5001、Firestore 8080へ接続します。両側のproject IDを一致させてください。Viteで別ポートを使う場合はバックエンドの `APP_URI_LOCAL` を合わせます。
 
-- `mise run test`  
-  Vitest で単体テスト
+## テンプレート
 
-- `mise run test:coverage`  
-  カバレッジ計測
+| 変数 | 内容 |
+|---|---|
+| `$displayname` / `$displayName` | Raid元の表示名 |
+| `$loginname` / `$loginName` | Raid元のlogin |
+| `$category` / `$game` | カテゴリ |
+| `$title` | 配信タイトル |
 
-## Workflow
+編集画面のプレビューは維持しています。実投稿では値を文字列として安全に挿入し、展開後500文字を超えた場合は末尾を省略して1投稿にします。category/title取得に失敗したときは空文字で投稿を続けます。
 
-- セキュリティ対応は Dependabot Alerts を確認してから対応
-- PR本文/コメントは日本語を基本にする
+OAuthのscopeは `user:write:chat` と `moderator:manage:shoutouts`。ShoutoutスイッチON時のみ、チャット処理の3秒後にShoutoutを実行します。他チャンネルでのShoutoutは投稿アカウントにモデレーター権限が必要です。配信条件やcooldownによるskipと投稿拒否を状態に反映します。[Twitch Chat API](https://dev.twitch.tv/docs/api/reference/#send-chat-message)、[Shoutout API](https://dev.twitch.tv/docs/api/reference/#send-a-shoutout)
 
-## Build
 
-- `mise run build`
+具体的な初回移行・通常更新のコマンドは、バックエンドの [デプロイ手順](../awt-cephalon/docs/DEPLOY.md) を参照してください。
 
-## Deploy
+## テスト・移行
 
-- `mise run deploy`  
-  Firebase Hosting へデプロイ
+Vitestでtokenなしの認証復元、旧セッションの再連携、状態表示、停止・再開、検索API、設定保存成功/失敗を検証します。Firebase/Twitchはmockし、CIから実Twitch APIを呼びません。CIではtest・lint・buildを実行します。Rules Emulatorテストはバックエンド側で実行します。
 
-## Project Docs
+移行順は「既存設定バックアップ → 旧ブラウザ処理停止 → Rules/TTL → Functions → Hosting → 旧認可・セッション整理 → 新scopeで再連携 → ブラウザを閉じた実動確認」です。既存設定のデータ移動は不要です。旧ユーザーは再連携するまで自動投稿されません。
 
-- Agent 向け前提: `docs/agents/CONTEXT.md`
-- Agent ガイド: `AGENTS.md`
+外部APIの成功直後に障害が起きた場合は結果不明となり、自動再送しません。停止直前に開始したAPIは取り消せません。複数タブでもバックエンドのジョブ単位で重複を防ぐため、旧複数タブ警告は削除しました。
 
-## Notes
-
-- Raid 検知は tmi.js の `usernotice` を利用しています。
-- テストでは Firebase 初期化のモックが必要です。
-- `/shoutout` の自動実行は Twitch API の Shoutout エンドポイントを使用します（`moderator:manage:shoutouts` スコープが必要）。
-- Shoutout は「配信中かつ視聴者がいる」「自分自身には送れない」「レート制限あり」などの制約があります。
-- 認証失敗時は `auth_error` が付与されるため、ログイン画面でメッセージ表示します。
-
-## Shoutout Message Placeholders
-
-以下のプレースホルダを `Shoutoutメッセージ` で利用できます。
-
-- `$displayname` / `$displayName`: 表示名
-- `$loginname` / `$loginName`: ログイン名
-- `$category` / `$game`: カテゴリ名
-- `$title`: 配信タイトル
+開発者向け構成は [docs/agents/CONTEXT.md](docs/agents/CONTEXT.md)、作業指示は [AGENTS.md](AGENTS.md) を参照してください。セキュリティ対応ではDependabot Alertsを確認し、PR本文・コメントは日本語を基本にします。

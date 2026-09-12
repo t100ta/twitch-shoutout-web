@@ -1,6 +1,6 @@
 import { useRef, FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
+import { UserSettings } from "../../types";
 import { Header } from "../shared/Header";
 import { MessageCreator } from "./MessageCreator";
 import { TargetChannelFinder } from "./TargetChannelFinder";
@@ -9,15 +9,21 @@ import { useMutateSettings } from "../../hooks/useMutateSettings";
 import { useQuerySettings } from "../../hooks/useQuerySettings";
 
 export const Edit = () => {
-  const queryClient = useQueryClient();
+  const uid = useStore((state) => state.botUser?.id);
+  const query = useQuerySettings(uid || "");
+  if (query.isLoading) return <p>読み込み中</p>;
+  if (query.isError) return <p role="alert">設定の取得に失敗しました。</p>;
+  if (!uid) return null;
+  return <EditForm key={uid} userSettings={query.data} />;
+};
+const EditForm = ({ userSettings }: { userSettings: UserSettings | null | undefined }) => {
   const botUser = useStore((state) => state.botUser);
-  const ACCESS_TOKEN = botUser?.accessToken as string;
   const ID = botUser?.id as string;
 
   const navigate = useNavigate();
   const createSettingsMutation = useMutateSettings();
 
-  const userSettings = useQuerySettings(ID).data;
+  const [saveError, setSaveError] = useState("");
   const [targetChannelDisplayName, setTargetChannelDisplayName] = useState(
     userSettings?.targetChannelDisplayName ?? ""
   );
@@ -46,9 +52,11 @@ export const Edit = () => {
   const cancelDialogRef = useRef<HTMLDialogElement>(null);
   const backHome = () => navigate("/home");
 
-  const save = (event: FormEvent<HTMLFormElement>) => {
+  const save = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    createSettingsMutation.mutateAsync({
+    setSaveError("");
+    try {
+    await createSettingsMutation.mutateAsync({
       twitchId: ID,
       data: {
         targetChannelDisplayName: targetChannelDisplayName,
@@ -58,9 +66,8 @@ export const Edit = () => {
         isShoutoutCommandExecute: isCommandExecuteChecked,
       },
     });
-    queryClient.invalidateQueries({ queryKey: ["settings", ID] });
-
     navigate("/home");
+    } catch { setSaveError("保存に失敗しました。再度お試しください。"); }
   };
 
   return (
@@ -68,8 +75,8 @@ export const Edit = () => {
       <Header />
       <form onSubmit={save}>
         <h1>編集</h1>
+        {saveError && <p role="alert">{saveError}</p>}
         <TargetChannelFinder
-          accessToken={ACCESS_TOKEN}
           channelLoginName={targetChannelLoginName}
           channelDisplayName={targetChannelDisplayName}
           setChannelLoginName={setTargetChannelLoginName}
@@ -77,7 +84,6 @@ export const Edit = () => {
           setId={setTargetChannelId}
         />
         <MessageCreator
-          accessToken={ACCESS_TOKEN}
           message={shoutoutMessage}
           setMessage={setShoutoutMessage}
           handleCloseModal={handleCloseModal}
@@ -96,7 +102,7 @@ export const Edit = () => {
 
         <button
           type="submit"
-          disabled={!targetChannelLoginName || !shoutoutMessage}
+          disabled={createSettingsMutation.isPending || (!!targetChannelLoginName && !targetChannelId) || !shoutoutMessage}
         >
           完了
         </button>

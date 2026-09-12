@@ -1,79 +1,40 @@
-import { useEffect, useRef, useState } from "react";
-import { useQueryUsers } from "../../hooks/useQueryUsers";
-
+import { useRef, useState } from "react";
+import { httpsCallable } from "firebase/functions";
+import { functions } from "../../firebase";
+import { TwitchUser } from "../../types";
+import useStore from "../../store";
 type Props = {
-  accessToken: string;
   channelLoginName: string;
   channelDisplayName: string;
-  setChannelLoginName: React.Dispatch<React.SetStateAction<string>>;
-  setChannelDisplayName: React.Dispatch<React.SetStateAction<string>>;
-  setId: React.Dispatch<React.SetStateAction<string>>;
+  setChannelLoginName: (value: string) => void;
+  setChannelDisplayName: (value: string) => void;
+  setId: (value: string) => void;
 };
-
-export const TargetChannelFinder = ({
-  accessToken,
-  channelLoginName,
-  channelDisplayName,
-  setChannelLoginName,
-  setChannelDisplayName,
-  setId,
-}: Props) => {
-  const { data: usersResponse, refetch } = useQueryUsers(
-    accessToken,
-    channelLoginName
-  );
-  const text = useRef("");
-  const [imgUrl, setImgUrl] = useState("");
-
-  const checkExistence = async () => {
-    if (!channelLoginName) {
-      return;
-    }
-    await refetch();
+export const TargetChannelFinder = ({ channelLoginName, channelDisplayName, setChannelLoginName, setChannelDisplayName, setId }: Props) => {
+  const [error, setError] = useState("");
+  const [pending, setPending] = useState(false);
+  const revision = useRef(0);
+  const check = async () => {
+    const login = channelLoginName.trim();
+    if (!login) return;
+    const version = ++revision.current;
+    const uid = useStore.getState().botUser?.id;
+    setPending(true); setError("");
+    try {
+      const result = await httpsCallable<{ login: string }, TwitchUser | null>(functions, "lookupTwitchUser")({ login });
+      if (version !== revision.current || uid !== useStore.getState().botUser?.id) return;
+      if (!result.data) { setError("チャンネルが見つかりませんでした。"); setId(""); setChannelDisplayName(""); return; }
+      setId(result.data.id); setChannelLoginName(result.data.login); setChannelDisplayName(result.data.display_name);
+    } catch { if (version === revision.current) setError("検索に失敗しました。再度お試しください。"); }
+    finally { if (version === revision.current) setPending(false); }
   };
-  useEffect(() => {
-    if (!channelLoginName) {
-      return;
-    }
-    if (!usersResponse || !Object.keys(usersResponse).length) {
-      setImgUrl("");
-      setChannelDisplayName("");
-      text.current = "Twitchで検索したけど見つからなかった...";
-      return;
-    }
-    const targetUser = usersResponse[0];
-    setImgUrl(targetUser.profile_image_url);
-    setChannelLoginName(targetUser.login);
-    setChannelDisplayName(targetUser.display_name);
-    setId(targetUser.id);
-    text.current = "";
-  }, [
-    usersResponse,
-    channelLoginName,
-    setChannelDisplayName,
-    setChannelLoginName,
-    setId,
-  ]);
-  return (
-    <>
-      <h2>投稿先チャンネル</h2>
-
-      <input
-        placeholder="ID (https://www.twitch.tv/ 以降の部分)"
-        value={channelLoginName}
-        onChange={(event) => setChannelLoginName(event.target.value)}
-        onBlur={() => checkExistence()}
-      ></input>
-      {imgUrl ? (
-        <img
-          src={imgUrl}
-          alt={channelLoginName}
-          title={channelDisplayName}
-          loading="lazy"
-        />
-      ) : null}
-      <p>{channelDisplayName}</p>
-      <span>{text.current}</span>
-    </>
-  );
+  return <>
+    <h2>投稿先チャンネル</h2>
+    <p>空欄の場合は自分のチャンネルを監視・投稿先にします。</p>
+    <input placeholder="TwitchのログインID" value={channelLoginName} onBlur={() => void check()}
+      onChange={(event) => { revision.current++; setPending(false); setId(""); setChannelDisplayName(""); setChannelLoginName(event.target.value); setError(""); }} />
+    <button type="button" disabled={pending} onClick={() => void check()}>検索</button>
+    <p>{pending ? "検索中" : channelDisplayName}</p>
+    {error && <p role="alert">{error}</p>}
+  </>;
 };

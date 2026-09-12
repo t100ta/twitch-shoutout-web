@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+const mockSignOut = vi.hoisted(() => vi.fn());
 const mockSignInWithCustomToken = vi.hoisted(() => vi.fn());
 const mockGetIdTokenResult = vi.hoisted(() => vi.fn());
 const axiosPostMock = vi.hoisted(() => vi.fn());
@@ -15,6 +16,7 @@ vi.mock("../firebase", () => ({
 
 vi.mock("firebase/auth", () => ({
   signInWithCustomToken: mockSignInWithCustomToken,
+  signOut: mockSignOut,
 }));
 
 vi.mock("axios", () => ({
@@ -98,7 +100,6 @@ describe("signInWithTwitch", () => {
     mockSignInWithCustomToken.mockResolvedValue(undefined);
     mockGetIdTokenResult.mockResolvedValue({
       claims: {
-        twitch_access_token: "access",
         twitch_id: "twitch-id",
         twitch_display_name: "Display",
         twitch_login_name: "login",
@@ -112,7 +113,6 @@ describe("signInWithTwitch", () => {
     expect(result).toEqual({ ok: true });
     expect(mockSignInWithCustomToken).toHaveBeenCalled();
     expect(setBotUser).toHaveBeenCalledWith({
-      accessToken: "access",
       id: "twitch-id",
       displayName: "Display",
       loginName: "login",
@@ -149,7 +149,6 @@ describe("signInWithTwitch", () => {
     mockSignInWithCustomToken.mockResolvedValue(undefined);
     mockGetIdTokenResult.mockResolvedValue({
       claims: {
-        twitch_access_token: "access",
         twitch_id: "twitch-id",
       },
     });
@@ -196,4 +195,16 @@ describe("exchangeAuthCode", () => {
   it("throws when auth code is missing", async () => {
     await expect(exchangeAuthCode("")).rejects.toThrow("AUTH_CODE_MISSING");
   });
+});
+
+it("signs legacy token-bearing sessions out and requests reauthorization", async () => {
+  mockAuth.currentUser = { getIdTokenResult: mockGetIdTokenResult };
+  mockGetIdTokenResult.mockResolvedValue({ claims: { twitch_access_token: "legacy" } });
+  const setUser = vi.fn();
+  expect(await syncBotUserFromCurrentUser(setUser)).toEqual({ ok: false, reason: "RECONNECT_REQUIRED" });
+  expect(mockSignOut).toHaveBeenCalledWith(mockAuth);
+  expect(setUser).not.toHaveBeenCalled();
+});
+it("inserts replacement values literally and does not expand nested placeholders", () => {
+  expect(replaceText("$displayName $title", { displayName: "$&$title", name: "login", game: "game", title: "$`" })).toBe("$&$title $`");
 });

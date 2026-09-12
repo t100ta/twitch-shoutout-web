@@ -2,7 +2,6 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
 export type BotUser = {
-  accessToken: string;
   id: string;
   displayName: string;
   loginName: string;
