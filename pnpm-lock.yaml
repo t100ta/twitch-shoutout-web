@@ -64,7 +64,7 @@ importers:
         version: 1.21.2
       '@vanilla-extract/vite-plugin':
         specifier: ^5.1.4
-        version: 5.2.6(@types/node@26.5.1)(esbuild@0.28.1)(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.1))
+        version: 5.2.6(@types/node@26.5.1)(esbuild@0.28.1)(vite@8.3.0(@types/node@26.5.1)(esbuild@0.28.1))
       axios:
         specifier: ^1.17.0
         version: 1.20.0
@@ -104,7 +104,7 @@ importers:
         version: 19.3.0(@types/react@19.3.0)
       '@vitejs/plugin-react-swc':
         specifier: ^4.3.0
-        version: 4.3.3(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.1))
+        version: 4.3.3(vite@8.3.0(@types/node@26.5.1)(esbuild@0.28.1))
       '@vitest/coverage-v8':
         specifier: ^4.1.5
         version: 4.1.11(vitest@4.1.11)
@@ -140,13 +140,13 @@ importers:
         version: 8.70.0(eslint@9.39.5)(typescript@5.9.3)
       vite:
         specifier: 8.2.2
-        version: 8.2.2(@types/node@26.5.1)(esbuild@0.28.1)
+        version: 8.3.0(@types/node@26.5.1)(esbuild@0.28.1)
       vite-tsconfig-paths:
         specifier: ^6.1.1
-        version: 6.1.1(typescript@5.9.3)(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.1))
+        version: 6.1.1(typescript@5.9.3)(vite@8.3.0(@types/node@26.5.1)(esbuild@0.28.1))
       vitest:
         specifier: ^4.0.18
-        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@26.5.1)(@vitest/coverage-v8@4.1.11)(jsdom@26.1.0)(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.1))
+        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@26.5.1)(@vitest/coverage-v8@4.1.11)(jsdom@26.1.0)(vite@8.3.0(@types/node@26.5.1)(esbuild@0.28.1))
 
 packages:
 
@@ -2620,6 +2620,49 @@ packages:
       yaml:
         optional: true
 
+  vite@8.3.0:
+    resolution: {integrity: sha512-lhZBVvEHefgE+HQZC9O7EBJgCU/nVzFNl7vkS4RE0APtWLP02/8QVIkQtzBxPquh7lq5/78NHipTj7ODQ6XuyQ==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': ^20.19.0 || >=22.12.0
+      '@vitejs/devtools': ^0.7.1
+      esbuild: 0.28.1
+      jiti: '>=1.21.0'
+      less: ^4.0.0
+      sass: ^1.70.0
+      sass-embedded: ^1.70.0
+      stylus: '>=0.54.8'
+      sugarss: ^5.0.0
+      terser: ^5.16.0
+      tsx: ^4.8.1
+      yaml: ^2.4.2
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      '@vitejs/devtools':
+        optional: true
+      esbuild:
+        optional: true
+      jiti:
+        optional: true
+      less:
+        optional: true
+      sass:
+        optional: true
+      sass-embedded:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+      tsx:
+        optional: true
+      yaml:
+        optional: true
+
   vitest@4.1.11:
     resolution: {integrity: sha512-fhACrNXUidIbGSBr5FlbuBkO7VWC1ZyLl0DO4CU2DrQoAPxX84Ysxs+HeGQpii5lZWV1Q4gBZTTu49mF+A6Edw==}
     engines: {node: ^20.0.0 || ^22.0.0 || >=24.0.0}
@@ -3808,11 +3851,11 @@ snapshots:
 
   '@vanilla-extract/private@1.0.9': {}
 
-  '@vanilla-extract/vite-plugin@5.2.6(@types/node@26.5.1)(esbuild@0.28.1)(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.1))':
+  '@vanilla-extract/vite-plugin@5.2.6(@types/node@26.5.1)(esbuild@0.28.1)(vite@8.3.0(@types/node@26.5.1)(esbuild@0.28.1))':
     dependencies:
       '@vanilla-extract/compiler': 0.7.2(@types/node@26.5.1)(esbuild@0.28.1)
       '@vanilla-extract/integration': 8.0.10
-      vite: 8.2.2(@types/node@26.5.1)(esbuild@0.28.1)
+      vite: 8.3.0(@types/node@26.5.1)(esbuild@0.28.1)
     transitivePeerDependencies:
       - '@types/node'
       - '@vitejs/devtools'
@@ -3829,11 +3872,11 @@ snapshots:
       - tsx
       - yaml
 
-  '@vitejs/plugin-react-swc@4.3.3(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.1))':
+  '@vitejs/plugin-react-swc@4.3.3(vite@8.3.0(@types/node@26.5.1)(esbuild@0.28.1))':
     dependencies:
       '@rolldown/pluginutils': 1.0.1
       '@swc/core': 1.15.46
-      vite: 8.2.2(@types/node@26.5.1)(esbuild@0.28.1)
+      vite: 8.3.0(@types/node@26.5.1)(esbuild@0.28.1)
     transitivePeerDependencies:
       - '@swc/helpers'
 
@@ -3849,7 +3892,7 @@ snapshots:
       obug: 2.1.1
       std-env: 4.1.0
       tinyrainbow: 3.1.0
-      vitest: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@26.5.1)(@vitest/coverage-v8@4.1.11)(jsdom@26.1.0)(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.1))
+      vitest: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@26.5.1)(@vitest/coverage-v8@4.1.11)(jsdom@26.1.0)(vite@8.3.0(@types/node@26.5.1)(esbuild@0.28.1))
 
   '@vitest/expect@4.1.11':
     dependencies:
@@ -3860,13 +3903,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.1.0
 
-  '@vitest/mocker@4.1.11(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.1))':
+  '@vitest/mocker@4.1.11(vite@8.3.0(@types/node@26.5.1)(esbuild@0.28.1))':
     dependencies:
       '@vitest/spy': 4.1.11
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 8.2.2(@types/node@26.5.1)(esbuild@0.28.1)
+      vite: 8.3.0(@types/node@26.5.1)(esbuild@0.28.1)
 
   '@vitest/pretty-format@4.1.11':
     dependencies:
@@ -5523,12 +5566,12 @@ snapshots:
       - tsx
       - yaml
 
-  vite-tsconfig-paths@6.1.1(typescript@5.9.3)(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.1)):
+  vite-tsconfig-paths@6.1.1(typescript@5.9.3)(vite@8.3.0(@types/node@26.5.1)(esbuild@0.28.1)):
     dependencies:
       debug: 4.4.3
       globrex: 0.1.2
       tsconfck: 3.1.6(typescript@5.9.3)
-      vite: 8.2.2(@types/node@26.5.1)(esbuild@0.28.1)
+      vite: 8.3.0(@types/node@26.5.1)(esbuild@0.28.1)
     transitivePeerDependencies:
       - supports-color
       - typescript
@@ -5545,10 +5588,22 @@ snapshots:
       esbuild: 0.28.1
       fsevents: 2.3.3
 
-  vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@26.5.1)(@vitest/coverage-v8@4.1.11)(jsdom@26.1.0)(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.1)):
+  vite@8.3.0(@types/node@26.5.1)(esbuild@0.28.1):
+    dependencies:
+      lightningcss: 1.33.0
+      picomatch: 4.0.4
+      postcss: 8.5.26
+      rolldown: 1.2.8
+      tinyglobby: 0.2.17
+    optionalDependencies:
+      '@types/node': 26.5.1
+      esbuild: 0.28.1
+      fsevents: 2.3.3
+
+  vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@26.5.1)(@vitest/coverage-v8@4.1.11)(jsdom@26.1.0)(vite@8.3.0(@types/node@26.5.1)(esbuild@0.28.1)):
     dependencies:
       '@vitest/expect': 4.1.11
-      '@vitest/mocker': 4.1.11(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.1))
+      '@vitest/mocker': 4.1.11(vite@8.3.0(@types/node@26.5.1)(esbuild@0.28.1))
       '@vitest/pretty-format': 4.1.11
       '@vitest/runner': 4.1.11
       '@vitest/snapshot': 4.1.11
@@ -5565,7 +5620,7 @@ snapshots:
       tinyexec: 1.0.2
       tinyglobby: 0.2.15
       tinyrainbow: 3.1.0
-      vite: 8.2.2(@types/node@26.5.1)(esbuild@0.28.1)
+      vite: 8.3.0(@types/node@26.5.1)(esbuild@0.28.1)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@opentelemetry/api': 1.9.1
